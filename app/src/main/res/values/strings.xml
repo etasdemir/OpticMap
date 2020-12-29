@@ -1,8 +1,11 @@
 <resources>
     <string name="app_name">OpticMap</string>
 
-
     <!--Download Trained Data-->
     <string name="download_notification">Downloading selected language</string>
+
+    <!--Home -->
+    <string name="home_no_internet">No internet connection found!</string>
+    <string name="home_open_settings">Open Settings</string>
 
 </resources>

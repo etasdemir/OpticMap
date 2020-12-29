@@ -11,6 +11,7 @@ import android.provider.Settings
 import androidx.appcompat.app.AppCompatActivity
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.util.TrainedDataDownloader
+import com.google.android.material.snackbar.Snackbar
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -28,7 +29,7 @@ class MainActivity : AppCompatActivity() {
             val trainedDataDownloader = TrainedDataDownloader()
             trainedDataDownloader.download(this, language)
         } else {
-            requestConnectNetwork()
+            showNoInternetSnackbar()
         }
     }
 
@@ -53,8 +54,16 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
-    private fun requestConnectNetwork() {
-        openSettings()
+    private fun showNoInternetSnackbar() {
+        Snackbar.make(
+            findViewById(R.id.constraintLayout_MainActivity),
+            R.string.home_no_internet,
+            Snackbar.LENGTH_LONG
+        )
+            .setAction(R.string.home_open_settings) {
+                openSettings()
+            }
+            .show()
     }
 
     private fun openSettings() {
