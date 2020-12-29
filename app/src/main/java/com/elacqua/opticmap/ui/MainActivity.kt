@@ -2,16 +2,22 @@ package com.elacqua.opticmap.ui
 
 import android.content.Context
 import android.content.Intent
+import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkInfo
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
+import android.widget.ImageView
 import androidx.appcompat.app.AppCompatActivity
 import com.elacqua.opticmap.R
+import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.TrainedDataDownloader
 import com.google.android.material.snackbar.Snackbar
+import timber.log.Timber
+import java.lang.Exception
 
 class MainActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -20,7 +26,30 @@ class MainActivity : AppCompatActivity() {
 
 
         downloadTrainedData("eng")
+        takeImageFromGallery()
+    }
 
+    private fun takeImageFromGallery() {
+        val photoPickIntent = Intent(Intent.ACTION_PICK)
+        photoPickIntent.type = "image/*"
+        startActivityForResult(photoPickIntent, Constant.IMAGE_PICK_INTENT_CODE)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+
+        if (resultCode == RESULT_OK && requestCode == Constant.IMAGE_PICK_INTENT_CODE) {
+            try {
+                val imageUri: Uri? = data?.data
+                imageUri?.let { uri ->
+                    val imageStream = contentResolver.openInputStream(uri)
+                    val selectedImage = BitmapFactory.decodeStream(imageStream)
+                    findViewById<ImageView>(R.id.imageView).setImageBitmap(selectedImage)
+                }
+            } catch (e: Exception) {
+                Timber.e(e)
+            }
+        }
     }
 
     private fun downloadTrainedData(language: String) {
