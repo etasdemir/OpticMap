@@ -12,6 +12,8 @@
     <string name="home_no_internet">No internet connection found!</string>
     <string name="home_open_settings">Open Settings</string>
     <string name="home_dialog_title">Please select a language</string>
+    <string name="home_button_from">From</string>
+    <string name="home_button_to">To</string>
 
 
 </resources>

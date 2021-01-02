@@ -17,7 +17,7 @@
             android:id="@+id/btn_language_from"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="SrcLanguage"
+            android:text="@string/home_button_from"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/btn_language_to"
             app:layout_constraintHorizontal_bias="0.5"
@@ -28,13 +28,31 @@
             android:id="@+id/btn_language_to"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            tools:text="DsTLanguage"
+            android:text="@string/home_button_to"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toEndOf="parent"
             app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toEndOf="@+id/btn_language_from"
             app:layout_constraintTop_toTopOf="parent" />
 
+    </androidx.constraintlayout.widget.ConstraintLayout>
+
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_alignParentBottom="true"
+        android:layout_marginBottom="32dp">
+
+        <ImageButton
+            android:id="@+id/btn_home_gallery"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:background="@null"
+            android:src="@drawable/ic_gallery"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent" />
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </RelativeLayout>
