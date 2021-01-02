@@ -34,7 +34,7 @@ class HomeFragment : Fragment() {
         var selection = ""
         val builder = AlertDialog.Builder(requireContext())
         builder.setTitle(R.string.home_dialog_title)
-            .setSingleChoiceItems(Constant.languages, 0
+            .setSingleChoiceItems(Constant.languages, 1
             ) { _, selectedIndex ->
                 selection = Constant.shortLang[selectedIndex]
             }
