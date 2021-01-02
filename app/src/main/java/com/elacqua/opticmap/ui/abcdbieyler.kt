@@ -19,10 +19,10 @@ import com.google.android.material.snackbar.Snackbar
 import timber.log.Timber
 import java.lang.Exception
 
-class MainActivity : AppCompatActivity() {
+class abcdbieyler : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.oylesine_activity)
 
 
         downloadTrainedData("eng")

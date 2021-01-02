@@ -1,5 +1,9 @@
 <resources>
     <string name="app_name">OpticMap</string>
+    <string name="title_activity_main">MainActivity</string>
+    <string name="title_home">Home</string>
+    <string name="title_places">Places</string>
+    <string name="title_profile">Profile</string>
 
     <!--Download Trained Data-->
     <string name="download_notification">Downloading selected language</string>
@@ -7,5 +11,7 @@
     <!--Home -->
     <string name="home_no_internet">No internet connection found!</string>
     <string name="home_open_settings">Open Settings</string>
+    <string name="home_dialog_title">Please select a language</string>
+
 
 </resources>
