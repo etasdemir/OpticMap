@@ -1,6 +1,7 @@
 package com.elacqua.opticmap.ocr
 
 import android.graphics.Bitmap
+import android.graphics.BitmapFactory
 import org.opencv.android.Utils
 import org.opencv.core.*
 import org.opencv.features2d.MSER
@@ -8,13 +9,11 @@ import org.opencv.imgproc.Imgproc
 
 class OpenCV {
 
-    private lateinit var imageMat: Mat
     private lateinit var imageMat2: Mat
 
-    fun getText(bitmap: Bitmap, mat1: Mat, mat2: Mat): Bitmap {
-        imageMat = mat1
-        imageMat2 = mat2
-
+    fun getBitmap(bitmap: Bitmap): Bitmap {
+        imageMat2 = Mat()
+        val imageMat = Mat()
         Utils.bitmapToMat(bitmap, imageMat)
         detectText(imageMat)
         val newBitmap: Bitmap = bitmap.copy(bitmap.config, true)
@@ -22,8 +21,23 @@ class OpenCV {
         return newBitmap
     }
 
+    fun getBitmap(mat: Mat): Bitmap {
+        imageMat2 = Mat()
+        detectText(mat)
+        val conf = Bitmap.Config.ARGB_8888
+        val bitmap: Bitmap = Bitmap.createBitmap(mat.width(), mat.height(), conf)
+        Utils.matToBitmap(mat, bitmap)
+        return bitmap
+    }
+
+    fun getMat(mat: Mat): Mat {
+        imageMat2 = Mat()
+        detectText(mat)
+        return imageMat2
+    }
+
     private fun detectText(mat: Mat) {
-        Imgproc.cvtColor(imageMat, imageMat2, Imgproc.COLOR_RGB2GRAY)
+        Imgproc.cvtColor(mat, imageMat2, Imgproc.COLOR_RGB2GRAY)
         val mGray = imageMat2
 
         val CONTOUR_COLOR = Scalar(1.0, 255.0, 128.0, 0.0)

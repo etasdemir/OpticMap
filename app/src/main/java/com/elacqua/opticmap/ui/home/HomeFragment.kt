@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentHomeBinding
+import com.elacqua.opticmap.ocr.OpenCV
 import com.elacqua.opticmap.ocr.TrainedDataDownloader
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Language
@@ -43,6 +44,7 @@ class HomeFragment : Fragment() {
 
     private lateinit var mLoaderCallback: BaseLoaderCallback
     private lateinit var mOpenCvCameraView: CameraBridgeViewBase
+    private lateinit var openCV: OpenCV
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -50,6 +52,7 @@ class HomeFragment : Fragment() {
         handleLanguageButtons()
         handleGalleryAccess()
 
+        openCV = OpenCV()
         mOpenCvCameraView.run {
             visibility = SurfaceView.VISIBLE
             setCvCameraViewListener(object :
@@ -59,7 +62,8 @@ class HomeFragment : Fragment() {
                 override fun onCameraViewStopped() {}
 
                 override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
-                    return inputFrame!!.rgba()
+                    val mat = inputFrame!!.rgba()
+                    return openCV.getMat(mat)
                 }
             })
         }
