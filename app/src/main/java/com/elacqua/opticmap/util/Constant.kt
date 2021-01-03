@@ -29,3 +29,7 @@ object Constant {
         "swa", "swe", "syr", "tam", "tel", "tgk", "tgl", "tha", "tir", "tur", "uig", "ukr", "urd",
         "uzb", "uzb_cyrl", "vie", "yid")
 }
+
+enum class Language {
+    FROM,TO
+}

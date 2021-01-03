@@ -4,6 +4,7 @@
     <string name="title_home">Home</string>
     <string name="title_places">Places</string>
     <string name="title_profile">Profile</string>
+    <string name="cancel">Cancel</string>
 
     <!--Download Trained Data-->
     <string name="download_notification">Downloading selected language</string>
@@ -14,6 +15,8 @@
     <string name="home_dialog_title">Please select a language</string>
     <string name="home_button_from">From</string>
     <string name="home_button_to">To</string>
-
+    <string name="home_download_dialog_title">Download file for the selected language</string>
+    <string name="home_download_dialog_message">To find the text on the screen, OpticMap needs to download the file of the selected language.</string>
+    <string name="home_download_dialog_accept">Download</string>
 
 </resources>

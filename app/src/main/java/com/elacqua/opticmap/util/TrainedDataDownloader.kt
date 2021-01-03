@@ -10,22 +10,17 @@ import timber.log.Timber
 import java.io.File
 
 class TrainedDataDownloader : JobIntentService() {
-    private var DATA_PATH = ""
 
     fun download(context: Context, language: String) {
-        DATA_PATH = context.getExternalFilesDir(null)?.path.toString()
-        val filePath = "$DATA_PATH$TESS_DATA/$language$TRAINED_DATA_EXT"
+        val root = context.getExternalFilesDir(null)?.path.toString()
+        val filePath = "$root$TESS_DATA/$language$TRAINED_DATA_EXT"
         val dataUrl = "$baseUrl$language$TRAINED_DATA_EXT"
-        createDirIfNotExist("$DATA_PATH$TESS_DATA")
+        createDirIfNotExist("$root$TESS_DATA")
 
-        if (!isFileExist(filePath)) {
-            val intent = Intent(context, TrainedDataDownloader::class.java)
-                .putExtra(DOWNLOAD_PATH_KEY, dataUrl)
-                .putExtra(DESTINATION_PATH_KEY, filePath)
-            enqueueWork(context, TrainedDataDownloader::class.java, DOWNLOAD_JOB_ID, intent)
-        } else {
-            Timber.e("Trained data file exist of the selected language")
-        }
+        val intent = Intent(context, TrainedDataDownloader::class.java)
+            .putExtra(DOWNLOAD_PATH_KEY, dataUrl)
+            .putExtra(DESTINATION_PATH_KEY, filePath)
+        enqueueWork(context, TrainedDataDownloader::class.java, DOWNLOAD_JOB_ID, intent)
     }
 
     override fun onHandleWork(intent: Intent) {
@@ -48,8 +43,10 @@ class TrainedDataDownloader : JobIntentService() {
         (getSystemService(Context.DOWNLOAD_SERVICE) as DownloadManager).enqueue(request)
     }
 
-    private fun isFileExist(path: String): Boolean {
-        val file = File(path)
+    fun isFileExist(context: Context, language: String): Boolean {
+        val root = context.getExternalFilesDir(null)?.path.toString()
+        val filePath = "$root$TESS_DATA/$language$TRAINED_DATA_EXT"
+        val file = File(filePath)
         return file.exists()
     }
 

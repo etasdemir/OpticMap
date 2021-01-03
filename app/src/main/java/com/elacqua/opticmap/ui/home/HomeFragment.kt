@@ -13,10 +13,8 @@ import android.provider.Settings
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.ImageView
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
-import androidx.core.view.accessibility.AccessibilityEventCompat.setAction
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.elacqua.opticmap.R
@@ -26,7 +24,6 @@ import com.elacqua.opticmap.util.Language
 import com.elacqua.opticmap.util.TrainedDataDownloader
 import com.google.android.material.snackbar.Snackbar
 import timber.log.Timber
-import java.lang.Exception
 
 class HomeFragment : Fragment() {
 
@@ -59,11 +56,9 @@ class HomeFragment : Fragment() {
 
     private fun createLanguageDialog(type: Language) {
         val builder = AlertDialog.Builder(requireContext())
-        builder.apply {
+        builder.run {
             setTitle(R.string.home_dialog_title)
-            setSingleChoiceItems(
-                Constant.languages, 22
-            ) { dialog, selectedIndex ->
+            setSingleChoiceItems(Constant.languages, -1) { dialog, selectedIndex ->
                 if (type == Language.FROM) {
                     langFrom = Constant.shortLang[selectedIndex]
                     binding?.btnLanguageFrom?.text=Constant.languages[selectedIndex]
@@ -81,11 +76,34 @@ class HomeFragment : Fragment() {
 
     private fun downloadTrainedData() {
         val isConnected = checkInternetStatus()
-        if (isConnected) {
-            val trainedDataDownloader = TrainedDataDownloader()
-            trainedDataDownloader.download(requireContext(), langFrom)
-        } else {
+        if (!isConnected) {
             showNoInternetSnackbar()
+            return
+        }
+
+        val downloader = TrainedDataDownloader()
+        val isFileExist = downloader.isFileExist(requireContext(), langFrom)
+        if (isFileExist) {
+            Timber.d("Trained data file for selected language is exist")
+            return
+        }
+        createDownloadDialog(downloader)
+    }
+
+    private fun createDownloadDialog(downloader: TrainedDataDownloader) {
+        val builder = AlertDialog.Builder(requireContext())
+        builder.run {
+            setMessage(R.string.home_download_dialog_message)
+            setTitle(R.string.home_download_dialog_title)
+            setPositiveButton(R.string.home_download_dialog_accept) { dialog, _ ->
+                downloader.download(requireContext(), langFrom)
+                dialog.dismiss()
+            }
+            setNegativeButton(R.string.cancel) { dialog, _ ->
+                dialog.dismiss()
+            }
+            create()
+            show()
         }
     }
 
