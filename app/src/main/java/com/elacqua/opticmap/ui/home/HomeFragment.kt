@@ -21,7 +21,7 @@ import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentHomeBinding
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Language
-import com.elacqua.opticmap.util.TrainedDataDownloader
+import com.elacqua.opticmap.ocr.TrainedDataDownloader
 import com.google.android.material.snackbar.Snackbar
 import timber.log.Timber
 
