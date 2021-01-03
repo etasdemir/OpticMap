@@ -1,7 +1,9 @@
 package com.elacqua.opticmap.ui.home
 
+import android.Manifest
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
@@ -10,20 +12,27 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.view.LayoutInflater
-import android.view.View
-import android.view.ViewGroup
+import android.view.*
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentHomeBinding
+import com.elacqua.opticmap.ocr.TrainedDataDownloader
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Language
-import com.elacqua.opticmap.ocr.TrainedDataDownloader
 import com.google.android.material.snackbar.Snackbar
+import org.opencv.android.BaseLoaderCallback
+import org.opencv.android.CameraBridgeViewBase
+import org.opencv.android.LoaderCallbackInterface
+import org.opencv.android.OpenCVLoader
+import org.opencv.core.Core
+import org.opencv.core.Mat
+import org.opencv.imgproc.Imgproc
 import timber.log.Timber
+
 
 class HomeFragment : Fragment() {
 
@@ -32,11 +41,38 @@ class HomeFragment : Fragment() {
     private var langFrom = "eng"
     private var langTo = "eng"
 
+    private lateinit var mLoaderCallback: BaseLoaderCallback
+    private lateinit var mOpenCvCameraView: CameraBridgeViewBase
+
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
+        requestCameraPermission()
         handleLanguageButtons()
         handleGalleryAccess()
 
+        mOpenCvCameraView.run {
+            visibility = SurfaceView.VISIBLE
+            setCvCameraViewListener(object :
+                CameraBridgeViewBase.CvCameraViewListener2 {
+                override fun onCameraViewStarted(width: Int, height: Int) {}
+
+                override fun onCameraViewStopped() {}
+
+                override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
+                    return inputFrame!!.rgba()
+                }
+            })
+        }
+
+        mLoaderCallback = object : BaseLoaderCallback(requireActivity().applicationContext) {
+            override fun onManagerConnected(status: Int) {
+                if (status == LoaderCallbackInterface.SUCCESS) {
+                    mOpenCvCameraView.enableView()
+                } else {
+                    super.onManagerConnected(status)
+                }
+            }
+        }
     }
 
     private fun handleGalleryAccess() {
@@ -61,11 +97,11 @@ class HomeFragment : Fragment() {
             setSingleChoiceItems(Constant.languages, -1) { dialog, selectedIndex ->
                 if (type == Language.FROM) {
                     langFrom = Constant.shortLang[selectedIndex]
-                    binding?.btnLanguageFrom?.text=Constant.languages[selectedIndex]
+                    binding?.btnLanguageFrom?.text = Constant.languages[selectedIndex]
                     downloadTrainedData()
                 } else {
                     langTo = Constant.shortLang[selectedIndex]
-                    binding?.btnLanguageTo?.text=Constant.languages[selectedIndex]
+                    binding?.btnLanguageTo?.text = Constant.languages[selectedIndex]
                 }
                 dialog.dismiss()
             }
@@ -167,21 +203,71 @@ class HomeFragment : Fragment() {
         }
     }
 
+    private fun requestCameraPermission() {
+        if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
+            == PackageManager.PERMISSION_DENIED) {
+            requestPermissions(
+                arrayOf(Manifest.permission.CAMERA),
+                Constant.CAMERA_REQUEST_CODE
+            )
+        } else {
+            mOpenCvCameraView.setCameraPermissionGranted()
+        }
+    }
 
+    override fun onRequestPermissionsResult(
+        requestCode: Int,
+        permissions: Array<out String>,
+        grantResults: IntArray
+    ) {
+        if (requestCode == Constant.CAMERA_REQUEST_CODE && grantResults.isNotEmpty() &&
+                    grantResults[0] == PackageManager.PERMISSION_GRANTED
+        ) {
+            mOpenCvCameraView.setCameraPermissionGranted()
+            Timber.e("permission granted")
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (OpenCVLoader.initDebug()) {
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
+        } else {
+            Timber.e("onCreate: open cv error")
+        }
+    }
+
+    override fun onPause() {
+        super.onPause()
+        mOpenCvCameraView.disableView()
+    }
 
     override fun onCreateView(
         inflater: LayoutInflater,
         container: ViewGroup?,
         savedInstanceState: Bundle?
     ): View {
+        removeStatusBar()
         binding = FragmentHomeBinding.inflate(inflater, container, false)
+        mOpenCvCameraView = binding?.cameraViewOpencv!!
         return binding!!.root
+    }
+
+    @Suppress("DEPRECATION")
+    private fun removeStatusBar() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            requireActivity().window.insetsController?.hide(WindowInsets.Type.statusBars())
+        } else {
+            requireActivity().window.setFlags(
+                WindowManager.LayoutParams.FLAG_FULLSCREEN,
+                WindowManager.LayoutParams.FLAG_FULLSCREEN
+            )
+        }
     }
 
     override fun onDestroyView() {
         super.onDestroyView()
         binding = null
     }
-
 
 }

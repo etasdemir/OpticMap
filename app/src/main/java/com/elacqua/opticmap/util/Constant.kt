@@ -2,6 +2,7 @@ package com.elacqua.opticmap.util
 
 object Constant {
     const val IMAGE_PICK_INTENT_CODE = 10
+    const val CAMERA_REQUEST_CODE = 11
     val languages = arrayOf("Afrikaans", "Amharic", "Arabic", "Assamese", "Azerbaijani",
         "Azerbaijani-Cyrillic", "Belarusian", "Bengali", "Tibetan", "Bosnian", "Bulgarian",
         "Catalan;Valencian", "Cebuano", "Czech", "Chinese-Simplified", "Chinese-Traditional",
