@@ -21,10 +21,14 @@ import androidx.fragment.app.viewModels
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentHomeBinding
 import com.elacqua.opticmap.ocr.OpenCV
+import com.elacqua.opticmap.ocr.TesseractOCR
 import com.elacqua.opticmap.ocr.TrainedDataDownloader
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Language
 import com.google.android.material.snackbar.Snackbar
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.LoaderCallbackInterface
@@ -39,8 +43,8 @@ class HomeFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by viewModels()
     private var binding: FragmentHomeBinding? = null
-    private var langFrom = "eng"
-    private var langTo = "eng"
+    private var langFrom = Constant.DEFAULT_LANGUAGE
+    private var langTo = Constant.DEFAULT_LANGUAGE
 
     private lateinit var mLoaderCallback: BaseLoaderCallback
     private lateinit var mOpenCvCameraView: CameraBridgeViewBase
@@ -53,6 +57,30 @@ class HomeFragment : Fragment() {
         handleGalleryAccess()
 
         openCV = OpenCV()
+
+        mLoaderCallback = object : BaseLoaderCallback(requireActivity().applicationContext) {
+            override fun onManagerConnected(status: Int) {
+                if (status == LoaderCallbackInterface.SUCCESS) {
+                    mOpenCvCameraView.enableView()
+                } else {
+                    super.onManagerConnected(status)
+                }
+            }
+        }
+    }
+
+    override fun onResume() {
+        super.onResume()
+        if (OpenCVLoader.initDebug()) {
+            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
+        } else {
+            Timber.e("onCreate: open cv error")
+        }
+
+        drawCameraView()
+    }
+
+    private fun drawCameraView() {
         mOpenCvCameraView.run {
             visibility = SurfaceView.VISIBLE
             setCvCameraViewListener(object :
@@ -66,16 +94,6 @@ class HomeFragment : Fragment() {
                     return openCV.getMat(mat)
                 }
             })
-        }
-
-        mLoaderCallback = object : BaseLoaderCallback(requireActivity().applicationContext) {
-            override fun onManagerConnected(status: Int) {
-                if (status == LoaderCallbackInterface.SUCCESS) {
-                    mOpenCvCameraView.enableView()
-                } else {
-                    super.onManagerConnected(status)
-                }
-            }
         }
     }
 
@@ -229,15 +247,6 @@ class HomeFragment : Fragment() {
         ) {
             mOpenCvCameraView.setCameraPermissionGranted()
             Timber.e("permission granted")
-        }
-    }
-
-    override fun onResume() {
-        super.onResume()
-        if (OpenCVLoader.initDebug()) {
-            mLoaderCallback.onManagerConnected(LoaderCallbackInterface.SUCCESS)
-        } else {
-            Timber.e("onCreate: open cv error")
         }
     }
 
