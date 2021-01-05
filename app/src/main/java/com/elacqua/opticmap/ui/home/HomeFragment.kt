@@ -21,21 +21,15 @@ import androidx.fragment.app.viewModels
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentHomeBinding
 import com.elacqua.opticmap.ocr.OpenCV
-import com.elacqua.opticmap.ocr.TesseractOCR
 import com.elacqua.opticmap.ocr.TrainedDataDownloader
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Language
 import com.google.android.material.snackbar.Snackbar
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
 import org.opencv.android.BaseLoaderCallback
 import org.opencv.android.CameraBridgeViewBase
 import org.opencv.android.LoaderCallbackInterface
 import org.opencv.android.OpenCVLoader
-import org.opencv.core.Core
 import org.opencv.core.Mat
-import org.opencv.imgproc.Imgproc
 import timber.log.Timber
 
 
@@ -90,8 +84,7 @@ class HomeFragment : Fragment() {
                 override fun onCameraViewStopped() {}
 
                 override fun onCameraFrame(inputFrame: CameraBridgeViewBase.CvCameraViewFrame?): Mat {
-                    val mat = inputFrame!!.rgba()
-                    return openCV.getMat(mat)
+                    return inputFrame!!.rgba()
                 }
             })
         }
