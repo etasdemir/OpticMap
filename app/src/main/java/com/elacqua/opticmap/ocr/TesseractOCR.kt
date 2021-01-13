@@ -7,19 +7,19 @@ object TesseractOCR {
 
     private lateinit var tess: TessBaseAPI
 
-    suspend fun getText(imgBitmap: Bitmap, rootPath: String, language: String): String {
+    fun getText(imgBitmap: Bitmap, rootPath: String, language: String): String {
         if (!::tess.isInitialized) {
             initTesseract(rootPath, language)
         }
         return doOCR(imgBitmap)
     }
 
-    private suspend fun initTesseract(rootPath: String, language: String) {
+    private fun initTesseract(rootPath: String, language: String) {
         tess = TessBaseAPI()
         tess.init(rootPath, language)
     }
 
-    private suspend fun doOCR(imgBitmap: Bitmap): String {
+    private fun doOCR(imgBitmap: Bitmap): String {
         tess.setImage(imgBitmap)
         val result = tess.utF8Text ?: ""
         tess.end()

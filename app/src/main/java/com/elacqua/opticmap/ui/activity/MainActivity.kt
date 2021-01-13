@@ -1,9 +1,10 @@
-package com.elacqua.opticmap
+package com.elacqua.opticmap.ui.activity
 
 import android.os.Bundle
 import androidx.appcompat.app.AppCompatActivity
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
+import com.elacqua.opticmap.R
 import com.google.android.material.bottomnavigation.BottomNavigationView
 
 class MainActivity : AppCompatActivity() {

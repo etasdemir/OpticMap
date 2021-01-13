@@ -18,5 +18,6 @@
     <string name="home_download_dialog_title">Download file for the selected language</string>
     <string name="home_download_dialog_message">To find the text on the screen, OpticMap needs to download the file of the selected language.</string>
     <string name="home_download_dialog_accept">Download</string>
+    <string name="home_select_language">Please select the language from or to</string>
 
 </resources>

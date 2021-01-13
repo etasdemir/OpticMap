@@ -9,7 +9,14 @@
         android:id="@+id/navigation_home"
         android:name="com.elacqua.opticmap.ui.home.HomeFragment"
         android:label="@string/title_home"
-        tools:layout="@layout/fragment_home" />
+        tools:layout="@layout/fragment_home" >
+        <action
+            android:id="@+id/action_navigation_home_to_photoEditFragment"
+            app:destination="@id/photoEditFragment" />
+        <action
+            android:id="@+id/action_navigation_home_to_ocrFragment"
+            app:destination="@id/ocrFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_places"
@@ -22,4 +29,14 @@
         android:name="com.elacqua.opticmap.ui.profile.ProfileFragment"
         android:label="@string/title_profile"
         tools:layout="@layout/fragment_profile" />
+    <fragment
+        android:id="@+id/ocrFragment"
+        android:name="com.elacqua.opticmap.ui.fragments.OcrFragment"
+        android:label="fragment_ocr"
+        tools:layout="@layout/fragment_ocr" />
+    <fragment
+        android:id="@+id/photoEditFragment"
+        android:name="com.elacqua.opticmap.ui.fragments.PhotoEditFragment"
+        android:label="fragment_photo_edit"
+        tools:layout="@layout/fragment_photo_edit" />
 </navigation>

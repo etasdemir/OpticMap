@@ -36,6 +36,7 @@ android {
 }
 
 dependencies {
+    implementation 'androidx.legacy:legacy-support-v4:1.0.0'
     def navVersion = "2.3.2"
 
     implementation "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
@@ -62,4 +63,5 @@ dependencies {
     // Coroutine
     implementation 'org.jetbrains.kotlinx:kotlinx-coroutines-android:1.3.9'
 
+    api 'com.otaliastudios:cameraview:2.6.4'
 }

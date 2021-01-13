@@ -7,11 +7,17 @@
     android:layout_height="match_parent"
     tools:context=".ui.home.HomeFragment">
 
-    <org.opencv.android.JavaCameraView
+    <com.otaliastudios.cameraview.CameraView
+        android:id="@+id/camera"
+        android:keepScreenOn="true"
+        app:cameraAudio="off"
+        app:cameraPreview="glSurface"
+        app:cameraFlash="auto"
+        app:cameraMode="picture"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:visibility="gone"
-        android:id="@+id/camera_view_opencv"/>
+        android:layout_height="match_parent" >
+
+    </com.otaliastudios.cameraview.CameraView>
 
     <androidx.constraintlayout.widget.ConstraintLayout
         android:layout_width="match_parent"
@@ -53,14 +59,40 @@
 
         <ImageButton
             android:id="@+id/btn_home_gallery"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
             android:background="@null"
             android:src="@drawable/ic_gallery"
             app:layout_constraintBottom_toBottomOf="parent"
-            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btn_take_picture"
+            app:layout_constraintHorizontal_bias="0.5"
             app:layout_constraintStart_toStartOf="parent"
             app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btn_take_picture"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@null"
+            android:src="@drawable/ic_notifications_black_24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toStartOf="@+id/btn_record_voice"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/btn_home_gallery"
+            app:layout_constraintTop_toTopOf="parent" />
+
+        <ImageButton
+            android:id="@+id/btn_record_voice"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:background="@null"
+            android:src="@drawable/ic_home_black_24dp"
+            app:layout_constraintBottom_toBottomOf="parent"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintHorizontal_bias="0.5"
+            app:layout_constraintStart_toEndOf="@+id/btn_take_picture"
+            app:layout_constraintTop_toTopOf="parent" />
+
     </androidx.constraintlayout.widget.ConstraintLayout>
 
 </RelativeLayout>
