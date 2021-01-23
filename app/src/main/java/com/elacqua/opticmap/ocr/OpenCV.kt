@@ -46,13 +46,15 @@ class OpenCV {
 
 //        val detector = ORB.create()
 //        detector.detect(mGray, keyPoint)
+
         val detector = MSER.create()
 
         val mGray = Mat(mat.size(),mat.type())
-        Imgproc.cvtColor(mat, mGray, Imgproc.COLOR_RGB2GRAY)
-        //Imgproc.adaptiveThreshold(imageMat2,imageMat2,255.0,Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,Imgproc.THRESH_BINARY,3,2.0)
-        Imgproc.threshold(mGray, mGray, 127.0, 255.0, Imgproc.THRESH_BINARY)
+        Imgproc.cvtColor(mat, mGray, Imgproc.COLOR_RGBA2GRAY)
 
+        //Imgproc.adaptiveThreshold(mGray,mGray,255.0,Imgproc.ADAPTIVE_THRESH_GAUSSIAN_C,Imgproc.THRESH_BINARY_INV,3,2.0)
+        Imgproc.threshold(mGray, mGray, 127.0, 255.0, Imgproc.THRESH_OTSU)
+        Imgproc.Canny(mGray,mGray,-80.0,-100.0)
         detector.detect(mGray, keyPoint)
 
         detector.clear()
@@ -94,6 +96,9 @@ class OpenCV {
         val hierarchy = Mat()
 
         Imgproc.morphologyEx(mask, morByte, Imgproc.MORPH_DILATE, kernel)
+        Imgproc.morphologyEx(mask, morByte, Imgproc.MORPH_OPEN, kernel)
+        Imgproc.morphologyEx(mask, morByte, Imgproc.MORPH_ERODE, kernel)
+        Imgproc.morphologyEx(mask, morByte, Imgproc.MORPH_CLOSE, kernel)
 
         mask.release()
 

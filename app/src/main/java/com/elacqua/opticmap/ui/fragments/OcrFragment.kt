@@ -6,7 +6,9 @@ import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
+import androidx.lifecycle.Observer
 import com.elacqua.opticmap.databinding.FragmentOcrBinding
+import com.elacqua.opticmap.ocr.MLTranslator
 import com.elacqua.opticmap.ocr.OpenCV
 import com.elacqua.opticmap.ocr.TesseractOCR
 import com.elacqua.opticmap.util.Constant
@@ -26,6 +28,7 @@ class OcrFragment : Fragment() {
     private var image: Bitmap? = null
     private var langFrom: String = Constant.DEFAULT_LANGUAGE
     private var langTo: String = Constant.DEFAULT_LANGUAGE
+    private val translator = MLTranslator()
     private lateinit var mLoaderCallback: BaseLoaderCallback
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
@@ -33,6 +36,13 @@ class OcrFragment : Fragment() {
 
         getArgs()
         openCvReadyListen()
+        observeTranslatedText()
+    }
+
+    private fun observeTranslatedText() {
+        translator.translatedText.observe(viewLifecycleOwner,{
+            binding?.txtTranslationResult?.text = it
+        })
     }
 
     private fun getArgs() {
@@ -55,10 +65,12 @@ class OcrFragment : Fragment() {
     }
 
     private fun getTextFromImage() {
+
         if (image == null) {
             Timber.e("image is null")
             return
         }
+
         binding?.imgOcrPicture?.setImageBitmap(image)
         CoroutineScope(Dispatchers.Default).launch {
             val openCV = OpenCV()
@@ -66,6 +78,7 @@ class OcrFragment : Fragment() {
             val path = requireContext().getExternalFilesDir(null)?.path.toString()
             val ocrResult = TesseractOCR.getText(openCvResult, path, langFrom)
             withContext(Dispatchers.Main) {
+                translator.translate(ocrResult)
                 binding?.txtOcrResult?.text = ocrResult
             }
         }

@@ -119,6 +119,7 @@ class HomeFragment : Fragment() {
     private fun navigateToPhotoEditFragment(image: Bitmap) {
         val args = bundleOf(Constant.PHOTO_EDIT_KEY to image)
         findNavController().navigate(R.id.action_navigation_home_to_photoEditFragment, args)
+        //TODO(Check tess data while changing fragment)
     }
 
     private fun takeImageFromGallery() {
@@ -149,6 +150,7 @@ class HomeFragment : Fragment() {
     private fun navigateToOcrFragment(image: Bitmap) {
         val args = bundleOf(Constant.OCR_IMAGE_KEY to image)
         findNavController().navigate(R.id.action_navigation_home_to_ocrFragment, args)
+        //TODO(Check tess data while changing fragment)
     }
 
     private fun isLanguageSelected(): Boolean {
