@@ -8,9 +8,7 @@ object TesseractOCR {
     private lateinit var tess: TessBaseAPI
 
     fun getText(imgBitmap: Bitmap, rootPath: String, language: String): String {
-        if (!::tess.isInitialized) {
-            initTesseract(rootPath, language)
-        }
+        initTesseract(rootPath, language)
         return doOCR(imgBitmap)
     }
 

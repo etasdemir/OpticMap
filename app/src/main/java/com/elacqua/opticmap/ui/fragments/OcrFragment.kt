@@ -42,6 +42,7 @@ class OcrFragment : Fragment() {
     private fun observeTranslatedText() {
         translator.translatedText.observe(viewLifecycleOwner,{
             binding?.txtTranslationResult?.text = it
+            translator.close()
         })
     }
 

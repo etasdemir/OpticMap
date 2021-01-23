@@ -9,6 +9,7 @@ import com.google.mlkit.nl.translate.*
 import timber.log.Timber
 
 class MLTranslator {
+    //TODO probably memory leaks (check live data and translator.close)
 
     private val _translatedText = MutableLiveData<String>()
     val  translatedText : LiveData<String> = _translatedText
@@ -19,7 +20,7 @@ class MLTranslator {
         .build()
     private val translator: Translator = Translation.getClient(options)
 
-    fun downloadModel(text: String){
+    private fun downloadModel(text: String){
         val conditions = DownloadConditions.Builder()
             .requireWifi()
             .build()
@@ -47,7 +48,7 @@ class MLTranslator {
     val modelManager = RemoteModelManager.getInstance()
 
     // Get translation models stored on the device.
-    fun getTrasnlationModel(){
+    fun getTranslationModel(){
         modelManager.getDownloadedModels(TranslateRemoteModel::class.java)
             .addOnSuccessListener { models ->
                 return@addOnSuccessListener
@@ -55,6 +56,10 @@ class MLTranslator {
             .addOnFailureListener {
                 return@addOnFailureListener
             }
+    }
+
+    fun close(){
+        translator.close()
     }
 
     fun downloadDesiredModel(language : String){
