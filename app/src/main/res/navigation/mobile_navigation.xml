@@ -38,5 +38,9 @@
         android:id="@+id/photoEditFragment"
         android:name="com.elacqua.opticmap.ui.fragments.PhotoEditFragment"
         android:label="fragment_photo_edit"
-        tools:layout="@layout/fragment_photo_edit" />
+        tools:layout="@layout/fragment_photo_edit" >
+        <action
+            android:id="@+id/action_photoEditFragment_to_ocrFragment"
+            app:destination="@id/ocrFragment" />
+    </fragment>
 </navigation>
