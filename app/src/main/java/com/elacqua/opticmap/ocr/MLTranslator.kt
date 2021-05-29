@@ -2,7 +2,6 @@ package com.elacqua.opticmap.ocr
 
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
-import com.google.android.gms.tasks.OnSuccessListener
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.common.model.RemoteModelManager
 import com.google.mlkit.nl.translate.*
@@ -11,6 +10,7 @@ import timber.log.Timber
 class MLTranslator {
     //TODO probably memory leaks (check live data and translator.close)
 
+    private val modelManager = RemoteModelManager.getInstance()
     private val _translatedText = MutableLiveData<String>()
     val  translatedText : LiveData<String> = _translatedText
 
@@ -30,7 +30,7 @@ class MLTranslator {
                 translate(text)
             }
             .addOnFailureListener { exception ->
-               //TODO
+                Timber.e("downloadModel: ${exception.message}")
             }
 
     }
@@ -41,11 +41,10 @@ class MLTranslator {
                 _translatedText.value = result
             }
             .addOnFailureListener { exception ->
+                Timber.e("translate: ${exception.message}")
                 downloadModel(text)
             }
     }
-
-    val modelManager = RemoteModelManager.getInstance()
 
     // Get translation models stored on the device.
     fun getTranslationModel(){
@@ -62,14 +61,14 @@ class MLTranslator {
         translator.close()
     }
 
-    fun downloadDesiredModel(language : String){
-        val desiredModel =
+    fun downloadSelectedModel(language : String){
+        val selectedModel =
             TranslateLanguage.fromLanguageTag(language)?.let { TranslateRemoteModel.Builder(it).build() }
         val conditions = DownloadConditions.Builder()
             .requireWifi()
             .build()
-        if (desiredModel != null) {
-            modelManager.download(desiredModel, conditions)
+        selectedModel?.let {
+            modelManager.download(selectedModel, conditions)
                 .addOnSuccessListener {
                     // Model downloaded.
                     Timber.e("Model Downloaded")

@@ -27,7 +27,6 @@ import androidx.fragment.app.viewModels
 import androidx.navigation.fragment.findNavController
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentHomeBinding
-import com.elacqua.opticmap.ocr.TrainedDataDownloader
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Language
 import com.elacqua.opticmap.util.SharedPref
@@ -50,6 +49,10 @@ class HomeFragment : Fragment() {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        if (!checkInternetStatus()) {
+            showNoInternetSnackbar()
+            return
+        }
         requestCameraPermission()
         setCameraView()
         setLanguages()
@@ -119,7 +122,6 @@ class HomeFragment : Fragment() {
     private fun navigateToPhotoEditFragment(image: Bitmap) {
         val args = bundleOf(Constant.PHOTO_EDIT_KEY to image)
         findNavController().navigate(R.id.action_navigation_home_to_photoEditFragment, args)
-        //TODO(Check tess data while changing fragment)
     }
 
     private fun takeImageFromGallery() {
@@ -150,14 +152,14 @@ class HomeFragment : Fragment() {
     private fun navigateToOcrFragment(image: Bitmap) {
         val args = bundleOf(Constant.OCR_IMAGE_KEY to image)
         findNavController().navigate(R.id.action_navigation_home_to_ocrFragment, args)
-        //TODO(Check tess data while changing fragment)
     }
 
     private fun isLanguageSelected(): Boolean {
         return if (binding?.btnLanguageFrom?.text == getString(R.string.home_button_from) ||
             binding?.btnLanguageTo?.text == getString(R.string.home_button_to)
         ) {
-            Toast.makeText(requireContext(), R.string.home_select_language, Toast.LENGTH_SHORT).show()
+            Toast.makeText(requireContext(), R.string.home_select_language, Toast.LENGTH_SHORT)
+                .show()
             false
         } else {
             true
@@ -174,45 +176,11 @@ class HomeFragment : Fragment() {
                     langFrom = Constant.shortLang[selectedIndex]
                     pref.langFrom = langFrom
                     binding?.btnLanguageFrom?.text = Constant.languages[selectedIndex]
-                    downloadTrainedData()
                 } else {
                     langTo = Constant.shortLang[selectedIndex]
                     pref.langTo = langTo
                     binding?.btnLanguageTo?.text = Constant.languages[selectedIndex]
                 }
-                dialog.dismiss()
-            }
-            create()
-            show()
-        }
-    }
-
-    private fun downloadTrainedData() {
-        val isConnected = checkInternetStatus()
-        if (!isConnected) {
-            showNoInternetSnackbar()
-            return
-        }
-
-        val downloader = TrainedDataDownloader()
-        val isFileExist = downloader.isFileExist(requireContext(), langFrom)
-        if (isFileExist) {
-            Timber.d("Trained data file for selected language is exist")
-            return
-        }
-        createDownloadDialog(downloader)
-    }
-
-    private fun createDownloadDialog(downloader: TrainedDataDownloader) {
-        val builder = AlertDialog.Builder(requireContext())
-        builder.run {
-            setMessage(R.string.home_download_dialog_message)
-            setTitle(R.string.home_download_dialog_title)
-            setPositiveButton(R.string.home_download_dialog_accept) { dialog, _ ->
-                downloader.download(requireContext(), langFrom)
-                dialog.dismiss()
-            }
-            setNegativeButton(R.string.cancel) { dialog, _ ->
                 dialog.dismiss()
             }
             create()
