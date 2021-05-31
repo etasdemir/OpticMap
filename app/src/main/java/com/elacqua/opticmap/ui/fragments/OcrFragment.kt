@@ -8,11 +8,13 @@ import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.elacqua.opticmap.databinding.FragmentOcrBinding
 import com.elacqua.opticmap.ocr.MLTranslator
+import com.elacqua.opticmap.ocr.OCRHandler
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.SharedPref
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 import timber.log.Timber
 
 class OcrFragment : Fragment() {
@@ -28,6 +30,7 @@ class OcrFragment : Fragment() {
 
         getArgs()
         observeTranslatedText()
+        getTextFromImage()
     }
 
     private fun observeTranslatedText() {
@@ -39,6 +42,7 @@ class OcrFragment : Fragment() {
 
     private fun getArgs() {
         image = arguments?.get(Constant.OCR_IMAGE_KEY) as Bitmap
+        binding?.imgOcrPicture?.setImageBitmap(image)
         val pref = SharedPref(requireContext())
         langFrom = pref.langFrom
         langTo = pref.langTo
@@ -49,14 +53,12 @@ class OcrFragment : Fragment() {
             Timber.e("image is null")
             return
         }
-
-        binding?.imgOcrPicture?.setImageBitmap(image)
-        CoroutineScope(Dispatchers.Default).launch {
-//            val ocrResult = ...
-//            withContext(Dispatchers.Main) {
-//                translator.translate(ocrResult)
-//                binding?.txtOcrResult?.text = ocrResult
-//            }
+        CoroutineScope(Dispatchers.IO).launch {
+            val ocrResult = OCRHandler.getTextFromBitmap(image!!, requireContext().applicationContext)
+            translator.translate(ocrResult)
+            withContext(Dispatchers.Main) {
+                binding?.txtOcrResult?.text = ocrResult
+            }
         }
     }
 

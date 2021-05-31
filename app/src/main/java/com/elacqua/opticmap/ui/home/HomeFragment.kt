@@ -51,11 +51,9 @@ class HomeFragment : Fragment() {
 
         if (!checkInternetStatus()) {
             showNoInternetSnackbar()
-            return
         }
-        requestCameraPermission()
-        setCameraView()
         setLanguages()
+        requestCameraPermission()
         binding?.run {
             btnLanguageFrom.setOnClickListener {
                 createLanguageDialog(Language.FROM)
@@ -71,24 +69,23 @@ class HomeFragment : Fragment() {
 
     private fun setCameraView() {
         binding?.run {
-            btnTakePicture.setOnClickListener {
-                camera.takePicture()
-            }
-            camera.run {
+            camera.apply {
                 setLifecycleOwner(viewLifecycleOwner)
                 addCameraListener(object : CameraListener() {
                     override fun onPictureTaken(result: PictureResult) {
                         result.toBitmap { picture ->
                             picture?.let { image ->
-                                if (!isLanguageSelected()) {
-                                    return@toBitmap
+                                if (isLanguageSelected()) {
+                                    saveMediaToStorage(image)
+                                    navigateToPhotoEditFragment(image)
                                 }
-                                saveMediaToStorage(image)
-                                navigateToPhotoEditFragment(image)
                             }
                         }
                     }
                 })
+            }
+            btnTakePicture.setOnClickListener {
+                camera.takePicture()
             }
         }
     }
@@ -236,12 +233,14 @@ class HomeFragment : Fragment() {
 
     private fun requestCameraPermission() {
         if (ContextCompat.checkSelfPermission(requireContext(), Manifest.permission.CAMERA)
-            == PackageManager.PERMISSION_DENIED
+            != PackageManager.PERMISSION_GRANTED
         ) {
             requestPermissions(
                 arrayOf(Manifest.permission.CAMERA),
                 Constant.CAMERA_REQUEST_CODE
             )
+        } else {
+            setCameraView()
         }
     }
 
@@ -253,8 +252,7 @@ class HomeFragment : Fragment() {
         if (requestCode == Constant.CAMERA_REQUEST_CODE && grantResults.isNotEmpty() &&
             grantResults[0] == PackageManager.PERMISSION_GRANTED
         ) {
-
-            Timber.e("permission granted")
+            setCameraView()
         }
     }
 

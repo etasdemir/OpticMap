@@ -11,9 +11,11 @@
         android:id="@+id/camera"
         android:keepScreenOn="true"
         app:cameraAudio="off"
-        app:cameraPreview="glSurface"
+        app:cameraPreview="texture"
         app:cameraFlash="auto"
         app:cameraMode="picture"
+        app:cameraEngine="camera2"
+        app:cameraExperimental="true"
         android:layout_width="match_parent"
         android:layout_height="match_parent" >
 
