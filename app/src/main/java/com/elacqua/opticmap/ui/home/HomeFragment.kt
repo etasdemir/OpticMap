@@ -29,6 +29,7 @@ import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentHomeBinding
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Language
+import com.elacqua.opticmap.util.Languages
 import com.elacqua.opticmap.util.SharedPref
 import com.google.android.material.snackbar.Snackbar
 import com.otaliastudios.cameraview.CameraListener
@@ -43,8 +44,8 @@ class HomeFragment : Fragment() {
 
     private val homeViewModel: HomeViewModel by viewModels()
     private var binding: FragmentHomeBinding? = null
-    private var langFrom = Constant.DEFAULT_LANGUAGE
-    private var langTo = Constant.DEFAULT_LANGUAGE
+    private var langFrom = Constant.DEFAULT_LANGUAGE.shortName
+    private var langTo = Constant.DEFAULT_LANGUAGE.shortName
 
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
@@ -167,16 +168,16 @@ class HomeFragment : Fragment() {
         val builder = AlertDialog.Builder(requireContext())
         builder.run {
             setTitle(R.string.home_dialog_title)
-            setSingleChoiceItems(Constant.languages, -1) { dialog, selectedIndex ->
+            setSingleChoiceItems(Languages.availableLanguages(), -1) { dialog, selectedIndex ->
                 val pref = SharedPref(requireContext())
                 if (type == Language.FROM) {
-                    langFrom = Constant.shortLang[selectedIndex]
+                    langFrom = Languages.values()[selectedIndex].shortName
                     pref.langFrom = langFrom
-                    binding?.btnLanguageFrom?.text = Constant.languages[selectedIndex]
+                    binding?.btnLanguageFrom?.text = Languages.getLanguageFromShortName(langFrom).name
                 } else {
-                    langTo = Constant.shortLang[selectedIndex]
+                    langTo = Languages.values()[selectedIndex].shortName
                     pref.langTo = langTo
-                    binding?.btnLanguageTo?.text = Constant.languages[selectedIndex]
+                    binding?.btnLanguageTo?.text = Languages.getLanguageFromShortName(langTo).name
                 }
                 dialog.dismiss()
             }
@@ -227,8 +228,8 @@ class HomeFragment : Fragment() {
         val pref = SharedPref(requireContext())
         langFrom = pref.langFrom
         langTo = pref.langTo
-        binding?.btnLanguageFrom?.text = langFrom
-        binding?.btnLanguageTo?.text = langTo
+        binding?.btnLanguageFrom?.text = Languages.getLanguageFromShortName(langFrom).name
+        binding?.btnLanguageTo?.text = Languages.getLanguageFromShortName(langTo).name
     }
 
     private fun requestCameraPermission() {

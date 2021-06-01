@@ -17,7 +17,7 @@
         app:cameraEngine="camera2"
         app:cameraExperimental="true"
         android:layout_width="match_parent"
-        android:layout_height="match_parent" >
+        android:layout_height="match_parent">
 
     </com.otaliastudios.cameraview.CameraView>
 
