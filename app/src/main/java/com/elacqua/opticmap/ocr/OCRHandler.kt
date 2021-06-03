@@ -2,6 +2,7 @@ package com.elacqua.opticmap.ocr
 
 import android.content.Context
 import android.graphics.Bitmap
+import com.elacqua.opticmap.util.UIState
 import com.google.android.gms.vision.Frame
 import com.google.android.gms.vision.text.TextRecognizer
 import timber.log.Timber
@@ -10,7 +11,8 @@ import timber.log.Timber
 object OCRHandler {
     private lateinit var textRecognizer: TextRecognizer
 
-    fun getTextFromBitmap(image: Bitmap, appContext: Context): String {
+    suspend fun getTextFromBitmap(image: Bitmap, appContext: Context): String {
+        UIState.isLoadingState.postValue(true)
         if (!this::textRecognizer.isInitialized) {
             textRecognizer = TextRecognizer.Builder(appContext).build()
         }
@@ -27,6 +29,7 @@ object OCRHandler {
             }
             result = stringBuilder.toString()
         }
+        UIState.isLoadingState.postValue(false)
         return result
     }
 }

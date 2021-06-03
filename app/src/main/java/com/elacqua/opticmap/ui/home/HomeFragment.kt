@@ -34,6 +34,7 @@ import com.elacqua.opticmap.util.SharedPref
 import com.google.android.material.snackbar.Snackbar
 import com.otaliastudios.cameraview.CameraListener
 import com.otaliastudios.cameraview.PictureResult
+import com.yalantis.ucrop.UCrop
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
@@ -77,8 +78,8 @@ class HomeFragment : Fragment() {
                         result.toBitmap { picture ->
                             picture?.let { image ->
                                 if (isLanguageSelected()) {
-                                    saveMediaToStorage(image)
-                                    navigateToPhotoEditFragment(image)
+                                    val imageUri = saveMediaToStorage(image)
+                                    navigateToUCrop(image)
                                 }
                             }
                         }
@@ -117,9 +118,13 @@ class HomeFragment : Fragment() {
         }
     }
 
-    private fun navigateToPhotoEditFragment(image: Bitmap) {
-        val args = bundleOf(Constant.PHOTO_EDIT_KEY to image)
-        findNavController().navigate(R.id.action_navigation_home_to_photoEditFragment, args)
+    private fun navigateToUCrop(imageUri: Uri) {
+//        val args = bundleOf(Constant.PHOTO_EDIT_KEY to image)
+//        findNavController().navigate(R.id.action_navigation_home_to_photoEditFragment, args)
+
+        UCrop.of(imageUri, imageUri)
+            .withAspectRatio(16f, 9f)
+            .start(requireActivity())
     }
 
     private fun takeImageFromGallery() {
@@ -144,6 +149,11 @@ class HomeFragment : Fragment() {
             } catch (e: Exception) {
                 Timber.e(e)
             }
+        }
+        if (resultCode == AppCompatActivity.RESULT_OK && requestCode == UCrop.REQUEST_CROP && data != null) {
+            val resultUri = UCrop.getOutput(data)
+        } else if (resultCode == UCrop.RESULT_ERROR && data != null) {
+            Timber.e("onActivityResult: Crop error: ${UCrop.getError(data)}")
         }
     }
 

@@ -16,12 +16,11 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
-import timber.log.Timber
 
 
 class OcrFragment : Fragment() {
 
-    private var binding: com.elacqua.opticmap.databinding.FragmentOcrBinding? = null
+    private var binding: FragmentOcrBinding? = null
     private var image: Bitmap? = null
     private var langFrom: Languages = Constant.DEFAULT_LANGUAGE
     private var langTo: Languages = Constant.DEFAULT_LANGUAGE
@@ -51,19 +50,13 @@ class OcrFragment : Fragment() {
     }
 
     private fun getTextFromImage() {
-        if (image == null) {
-            Timber.e("image is null")
-            return
-        }
-
-        CoroutineScope(Dispatchers.IO).launch {
-            val ocrResult = OCRHandler.getTextFromBitmap(
-                image!!,
-                requireContext().applicationContext
-            )
-            translator.translate(ocrResult, langFrom, langTo)
-            withContext(Dispatchers.Main) {
-                binding?.txtOcrResult?.text = ocrResult
+        if (image != null) {
+            CoroutineScope(Dispatchers.IO).launch {
+                val ocrResult = OCRHandler.getTextFromBitmap(image!!, context?.applicationContext!!)
+                translator.translate(ocrResult, langFrom, langTo)
+                withContext(Dispatchers.Main) {
+                    binding?.txtOcrResult?.text = ocrResult
+                }
             }
         }
     }

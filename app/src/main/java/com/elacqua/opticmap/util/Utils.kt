@@ -1,5 +1,7 @@
 package com.elacqua.opticmap.util
 
+import androidx.lifecycle.MutableLiveData
+
 object Constant {
 
     // Shared Preferences
@@ -14,4 +16,8 @@ object Constant {
     const val CAMERA_REQUEST_CODE = 11
 
     val DEFAULT_LANGUAGE = Languages.English
+}
+
+object UIState {
+    var isLoadingState = MutableLiveData(false)
 }

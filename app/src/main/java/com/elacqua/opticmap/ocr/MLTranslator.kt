@@ -3,6 +3,7 @@ package com.elacqua.opticmap.ocr
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import com.elacqua.opticmap.util.Languages
+import com.elacqua.opticmap.util.UIState
 import com.google.mlkit.common.model.DownloadConditions
 import com.google.mlkit.nl.translate.Translation
 import com.google.mlkit.nl.translate.Translator
@@ -14,32 +15,37 @@ class MLTranslator {
     private val _translatedText = MutableLiveData<String>()
     val  translatedText : LiveData<String> = _translatedText
 
-    private fun downloadModel(text: String, from: Languages, to: Languages){
+    private suspend fun downloadModel(onFinish: () -> Unit){
         val conditions = DownloadConditions.Builder().build()
         translator.downloadModelIfNeeded(conditions)
             .addOnSuccessListener {
                 Timber.e("Model Downloaded")
-                translate(text, from, to)
+                onFinish()
             }
             .addOnFailureListener { exception ->
                 Timber.e("downloadModel: ${exception.message}")
             }
     }
 
-    fun translate(text : String, from: Languages, to: Languages){
+    suspend fun translate(text : String, from: Languages, to: Languages){
+        UIState.isLoadingState.postValue(true)
         val options: TranslatorOptions = TranslatorOptions.Builder()
             .setSourceLanguage(from.shortName)
             .setTargetLanguage(to.shortName)
             .build()
         translator = Translation.getClient(options)
-        translator.translate(text)
-            .addOnSuccessListener { result ->
-                _translatedText.value = result
-            }
-            .addOnFailureListener { exception ->
-                Timber.e("translate: ${exception.message}") // Downloading model
-                downloadModel(text, from, to)
-            }
+        downloadModel {
+            translator.translate(text)
+                .addOnCompleteListener {
+                    UIState.isLoadingState.postValue(false)
+                }
+                .addOnSuccessListener { result ->
+                    _translatedText.value = result
+                }
+                .addOnFailureListener { exception ->
+                    Timber.e("translate: ${exception.message}") // Downloading model
+                }
+        }
     }
 
     fun close(){
