@@ -1,7 +1,8 @@
 package com.elacqua.opticmap.ui.home
 
 import android.Manifest
-import android.content.ContentValues
+import android.R.attr.bitmap
+import android.R.attr.name
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -12,11 +13,12 @@ import android.net.NetworkInfo
 import android.net.Uri
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
-import android.provider.MediaStore
 import android.provider.Settings
+import android.text.TextUtils
+import android.util.Log
 import android.view.*
 import android.widget.Toast
+import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -34,6 +36,8 @@ import com.otaliastudios.cameraview.PictureResult
 import com.yalantis.ucrop.UCrop
 import timber.log.Timber
 import java.io.File
+import java.io.FileOutputStream
+import java.io.IOException
 
 
 class HomeFragment : Fragment() {
@@ -89,20 +93,30 @@ class HomeFragment : Fragment() {
 
     private fun saveImgToCache(image: Bitmap): Uri {
         val outputDir = requireContext().cacheDir
-        val outputFile = File.createTempFile(System.currentTimeMillis().toString(), ".jpeg", outputDir)
-        return Uri.parse("")
+        val outputFile = File.createTempFile(
+            System.currentTimeMillis().toString(),
+            ".jpeg",
+            outputDir
+        )
+        val stream = FileOutputStream(outputFile.absolutePath)
+        image.compress(Bitmap.CompressFormat.PNG, 100, stream)
+        stream.close()
+        return Uri.fromFile(outputFile)
     }
 
     private fun navigateToUCrop(imageUri: Uri) {
         val outputDir = requireContext().cacheDir
-        val outputFile = File.createTempFile(System.currentTimeMillis().toString(), ".jpeg", outputDir)
+        val outputFile = File.createTempFile(
+            System.currentTimeMillis().toString(),
+            ".jpeg",
+            outputDir
+        )
 
         val options = UCrop.Options().apply {
             setFreeStyleCropEnabled(true)
             setCompressionQuality(100)
             setHideBottomControls(false)
         }
-        Timber.e("fileUri: ${Uri.fromFile(outputFile)}")
         UCrop.of(imageUri, Uri.fromFile(outputFile))
             .withOptions(options)
             .start(requireActivity())

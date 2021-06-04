@@ -1,12 +1,10 @@
 package com.elacqua.opticmap.ui.activity
 
-import android.content.ContentValues
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
 import android.os.Build
 import android.os.Bundle
-import android.os.Environment
 import android.provider.MediaStore
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
@@ -20,9 +18,6 @@ import com.elacqua.opticmap.util.UIState
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.yalantis.ucrop.UCrop
 import timber.log.Timber
-import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
 
 
 class MainActivity : AppCompatActivity() {
