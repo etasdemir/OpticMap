@@ -1,8 +1,6 @@
 package com.elacqua.opticmap.ui.home
 
 import android.Manifest
-import android.R.attr.bitmap
-import android.R.attr.name
 import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
@@ -14,11 +12,8 @@ import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.Settings
-import android.text.TextUtils
-import android.util.Log
 import android.view.*
 import android.widget.Toast
-import androidx.annotation.RequiresApi
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
@@ -37,7 +32,6 @@ import com.yalantis.ucrop.UCrop
 import timber.log.Timber
 import java.io.File
 import java.io.FileOutputStream
-import java.io.IOException
 
 
 class HomeFragment : Fragment() {
@@ -116,6 +110,11 @@ class HomeFragment : Fragment() {
             setFreeStyleCropEnabled(true)
             setCompressionQuality(100)
             setHideBottomControls(false)
+            setToolbarColor(ContextCompat.getColor(requireContext(), R.color.edit_toolbar))
+            setStatusBarColor(ContextCompat.getColor(requireContext(), R.color.edit_status_bar))
+            setToolbarTitle(getString(R.string.edit_photo))
+            setActiveControlsWidgetColor(ContextCompat.getColor(requireContext(), R.color.edit_widgets))
+            setCropFrameStrokeWidth(0)
         }
         UCrop.of(imageUri, Uri.fromFile(outputFile))
             .withOptions(options)

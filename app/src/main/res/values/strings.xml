@@ -20,4 +20,6 @@
     <string name="home_download_dialog_accept">Download</string>
     <string name="home_select_language">Please select the language from or to</string>
 
+    <string name="edit_photo">Edit photo</string>
+
 </resources>

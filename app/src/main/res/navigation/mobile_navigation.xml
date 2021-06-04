@@ -11,9 +11,6 @@
         android:label="@string/title_home"
         tools:layout="@layout/fragment_home" >
         <action
-            android:id="@+id/action_navigation_home_to_photoEditFragment"
-            app:destination="@id/photoEditFragment" />
-        <action
             android:id="@+id/action_navigation_home_to_ocrFragment"
             app:destination="@id/ocrFragment" />
     </fragment>
@@ -34,13 +31,5 @@
         android:name="com.elacqua.opticmap.ui.fragments.OcrFragment"
         android:label="fragment_ocr"
         tools:layout="@layout/fragment_ocr" />
-    <fragment
-        android:id="@+id/photoEditFragment"
-        android:name="com.elacqua.opticmap.ui.fragments.PhotoEditFragment"
-        android:label="fragment_photo_edit"
-        tools:layout="@layout/fragment_photo_edit" >
-        <action
-            android:id="@+id/action_photoEditFragment_to_ocrFragment"
-            app:destination="@id/ocrFragment" />
-    </fragment>
+
 </navigation>
