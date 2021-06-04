@@ -1,17 +1,28 @@
 package com.elacqua.opticmap.ui.activity
 
+import android.content.ContentValues
 import android.content.Intent
+import android.graphics.Bitmap
+import android.graphics.ImageDecoder
+import android.os.Build
 import android.os.Bundle
+import android.os.Environment
+import android.provider.MediaStore
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
+import androidx.core.os.bundleOf
 import androidx.navigation.findNavController
 import androidx.navigation.ui.setupWithNavController
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.ActivityMainBinding
+import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.UIState
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.yalantis.ucrop.UCrop
 import timber.log.Timber
+import java.io.File
+import java.io.FileOutputStream
+import java.io.OutputStream
 
 
 class MainActivity : AppCompatActivity() {
@@ -39,5 +50,42 @@ class MainActivity : AppCompatActivity() {
                 binding.progressBarMain.visibility = View.GONE
             }
         })
+    }
+
+    @Suppress("DEPRECATION")
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        when(requestCode) {
+            UCrop.REQUEST_CROP -> {
+                if (data != null) {
+                    val resultUri = UCrop.getOutput(data)
+                    val bitmap = if (Build.VERSION.SDK_INT < 28) {
+                        MediaStore.Images.Media.getBitmap(contentResolver, resultUri)
+                    } else {
+                        val source = ImageDecoder.createSource(contentResolver, resultUri!!)
+                        ImageDecoder.decodeBitmap(source)
+                    }
+                    saveImageToGallery(bitmap)
+                    cacheDir.deleteRecursively()
+                    navigateToOcrFragment(bitmap)
+                }
+            }
+            UCrop.RESULT_ERROR -> {
+                if (data != null) {
+                    Timber.e("onActivityResult: Crop error: ${UCrop.getError(data)}")
+                }
+            }
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    private fun saveImageToGallery(bitmap: Bitmap) {
+        val filename = "${System.currentTimeMillis()}.jpeg"
+        MediaStore.Images.Media.insertImage(contentResolver, bitmap, filename, "OpticMap image")
+    }
+
+    private fun navigateToOcrFragment(image: Bitmap) {
+        val args = bundleOf(Constant.OCR_IMAGE_KEY to image)
+        findNavController(R.id.nav_host_fragment).navigate(R.id.action_navigation_home_to_ocrFragment, args)
     }
 }

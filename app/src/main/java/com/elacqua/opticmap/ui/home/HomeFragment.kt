@@ -6,7 +6,6 @@ import android.content.Context
 import android.content.Intent
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.net.ConnectivityManager
 import android.net.NetworkCapabilities
 import android.net.NetworkInfo
@@ -21,10 +20,8 @@ import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
-import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.fragment.app.viewModels
-import androidx.navigation.fragment.findNavController
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentHomeBinding
 import com.elacqua.opticmap.util.Constant
@@ -37,8 +34,6 @@ import com.otaliastudios.cameraview.PictureResult
 import com.yalantis.ucrop.UCrop
 import timber.log.Timber
 import java.io.File
-import java.io.FileOutputStream
-import java.io.OutputStream
 
 
 class HomeFragment : Fragment() {
@@ -78,8 +73,8 @@ class HomeFragment : Fragment() {
                         result.toBitmap { picture ->
                             picture?.let { image ->
                                 if (isLanguageSelected()) {
-                                    val imageUri = saveMediaToStorage(image)
-                                    navigateToUCrop(image)
+                                    val imageUri = saveImgToCache(image)
+                                    navigateToUCrop(imageUri)
                                 }
                             }
                         }
@@ -92,38 +87,24 @@ class HomeFragment : Fragment() {
         }
     }
 
-    @Suppress("DEPRECATION")
-    fun saveMediaToStorage(bitmap: Bitmap) {
-        val filename = "${System.currentTimeMillis()}.jpg"
-        var fos: OutputStream? = null
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            context?.contentResolver?.also { resolver ->
-                val contentValues = ContentValues().apply {
-                    put(MediaStore.MediaColumns.DISPLAY_NAME, filename)
-                    put(MediaStore.MediaColumns.MIME_TYPE, "image/jpg")
-                    put(MediaStore.MediaColumns.RELATIVE_PATH, Environment.DIRECTORY_PICTURES)
-                }
-                val imageUri: Uri? =
-                    resolver.insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, contentValues)
-                fos = imageUri?.let { resolver.openOutputStream(it) }
-            }
-        } else {
-            val imagesDir =
-                Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_PICTURES)
-            val image = File(imagesDir, filename)
-            fos = FileOutputStream(image)
-        }
-        fos?.use {
-            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, it)
-        }
+    private fun saveImgToCache(image: Bitmap): Uri {
+        val outputDir = requireContext().cacheDir
+        val outputFile = File.createTempFile(System.currentTimeMillis().toString(), ".jpeg", outputDir)
+        return Uri.parse("")
     }
 
     private fun navigateToUCrop(imageUri: Uri) {
-//        val args = bundleOf(Constant.PHOTO_EDIT_KEY to image)
-//        findNavController().navigate(R.id.action_navigation_home_to_photoEditFragment, args)
+        val outputDir = requireContext().cacheDir
+        val outputFile = File.createTempFile(System.currentTimeMillis().toString(), ".jpeg", outputDir)
 
-        UCrop.of(imageUri, imageUri)
-            .withAspectRatio(16f, 9f)
+        val options = UCrop.Options().apply {
+            setFreeStyleCropEnabled(true)
+            setCompressionQuality(100)
+            setHideBottomControls(false)
+        }
+        Timber.e("fileUri: ${Uri.fromFile(outputFile)}")
+        UCrop.of(imageUri, Uri.fromFile(outputFile))
+            .withOptions(options)
             .start(requireActivity())
     }
 
@@ -138,28 +119,23 @@ class HomeFragment : Fragment() {
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
         super.onActivityResult(requestCode, resultCode, data)
-        if (resultCode == AppCompatActivity.RESULT_OK && requestCode == Constant.IMAGE_PICK_INTENT_CODE) {
-            try {
-                val imageUri: Uri? = data?.data
-                imageUri?.let { uri ->
-                    val imageStream = requireActivity().contentResolver.openInputStream(uri)
-                    val selectedImage = BitmapFactory.decodeStream(imageStream)
-                    navigateToOcrFragment(selectedImage)
+        if (resultCode != AppCompatActivity.RESULT_OK) {
+            return
+        }
+        when(requestCode) {
+            Constant.IMAGE_PICK_INTENT_CODE -> {
+                try {
+                    val imageUri: Uri? = data?.data
+                    if (imageUri != null) {
+                        navigateToUCrop(imageUri)
+                    } else {
+                        Timber.e("Gallery image uri is null")
+                    }
+                } catch (e: Exception) {
+                    Timber.e(e)
                 }
-            } catch (e: Exception) {
-                Timber.e(e)
             }
         }
-        if (resultCode == AppCompatActivity.RESULT_OK && requestCode == UCrop.REQUEST_CROP && data != null) {
-            val resultUri = UCrop.getOutput(data)
-        } else if (resultCode == UCrop.RESULT_ERROR && data != null) {
-            Timber.e("onActivityResult: Crop error: ${UCrop.getError(data)}")
-        }
-    }
-
-    private fun navigateToOcrFragment(image: Bitmap) {
-        val args = bundleOf(Constant.OCR_IMAGE_KEY to image)
-        findNavController().navigate(R.id.action_navigation_home_to_ocrFragment, args)
     }
 
     private fun isLanguageSelected(): Boolean {
