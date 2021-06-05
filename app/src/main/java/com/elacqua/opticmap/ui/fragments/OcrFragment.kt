@@ -14,6 +14,7 @@ import com.elacqua.opticmap.ocr.OCRResultListener
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Languages
 import com.elacqua.opticmap.util.SharedPref
+import com.elacqua.opticmap.util.UIState
 import timber.log.Timber
 
 class OcrFragment : Fragment() {
@@ -41,20 +42,27 @@ class OcrFragment : Fragment() {
 
     private fun getTextFromImage() {
         if (imageUri != null) {
-            val ocr = MLKitOCRHandler(requireContext(), MLTranslator(langFrom, langTo))
-            ocr.runTextRecognition(imageUri!!, object: OCRResultListener {
-                override fun onSuccess(bitmap: Bitmap?) {
-                    if (bitmap == null) {
-                        binding?.imgOcrPicture?.setImageURI(imageUri)
-                    } else {
-                        binding?.imgOcrPicture?.setImageBitmap(bitmap)
+            UIState.isLoadingState.value = true
+            MLTranslator(langFrom, langTo) {
+                val ocr = MLKitOCRHandler(requireContext(), it)
+                ocr.runTextRecognition(imageUri!!, object: OCRResultListener {
+                    override fun onSuccess(bitmap: Bitmap?) {
+                        if (bitmap == null) {
+                            binding?.imgOcrPicture?.setImageURI(imageUri)
+                        } else {
+                            binding?.imgOcrPicture?.setImageBitmap(bitmap)
+                        }
+                        UIState.isLoadingState.value = false
                     }
-                }
 
-                override fun onFailure(message: String) {
-                    Timber.e("OCR failed: $message")
-                }
-            })
+                    override fun onFailure(message: String) {
+                        Timber.e("OCR failed: $message")
+                        binding?.imgOcrPicture?.setImageURI(imageUri)
+                        UIState.isLoadingState.value = false
+                    }
+                })
+            }
+
         }
     }
 

@@ -2,9 +2,7 @@ package com.elacqua.opticmap.ui.activity
 
 import android.content.Intent
 import android.graphics.Bitmap
-import android.graphics.ImageDecoder
 import android.net.Uri
-import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.View
@@ -58,7 +56,7 @@ class MainActivity : AppCompatActivity() {
                     val resultUri = UCrop.getOutput(data)
                     val savedUri = saveImageToGallery(getBitmapFromUri(resultUri!!, contentResolver))
                     navigateToOcrFragment(savedUri!!)
-                    cacheDir.deleteRecursively()
+//                    cacheDir.deleteRecursively()
                 }
             }
             UCrop.RESULT_ERROR -> {

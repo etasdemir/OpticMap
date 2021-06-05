@@ -1,27 +1,20 @@
 package com.elacqua.opticmap.ocr
 
 import android.content.Context
-import android.graphics.Bitmap
-import android.graphics.Canvas
-import android.graphics.Color
-import android.graphics.Paint
+import android.graphics.*
 import android.net.Uri
-import com.elacqua.opticmap.util.UIState
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.TextRecognizerOptions
 import timber.log.Timber
-import kotlin.math.abs
-
 
 class MLKitOCRHandler(
     private val context: Context,
     private val translator: MLTranslator
 ) {
     fun runTextRecognition(imageUri: Uri, callback: OCRResultListener) {
-        UIState.isLoadingState.postValue(true)
         val image = InputImage.fromFilePath(context, imageUri)
         val recognizer: TextRecognizer =
             TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -32,65 +25,87 @@ class MLKitOCRHandler(
             .addOnFailureListener { e ->
                 callback.onFailure(e.stackTraceToString())
             }
-            .addOnCompleteListener {
-                UIState.isLoadingState.postValue(false)
-            }
     }
 
     private fun processTextRecognitionResult(
         texts: Text,
         image: InputImage,
         callback: OCRResultListener
-    ): Bitmap? {
+    ) {
         val blocks = texts.textBlocks
-        if (blocks.size == 0) {
-            return null
+        if (blocks.size == 0 || image.bitmapInternal == null) {
+            return
         }
-        var bitmap: Bitmap? = null
-        var canvas: Canvas? = null
+        val bitmap = image.bitmapInternal!!.copy(Bitmap.Config.ARGB_8888, true)
+        val canvas = Canvas(bitmap)
         var textCount = 0
         val paint = Paint()
         paint.color = Color.BLACK
-        image.bitmapInternal?.let {
-            bitmap = it.copy(Bitmap.Config.ARGB_8888, true)
-            bitmap?.let {
-                canvas = Canvas(bitmap!!)
-            }
-        }
         for (i in blocks.indices) {
             val lines = blocks[i].lines
             for (j in lines.indices) {
                 val elements = lines[j].elements
                 for (k in elements.indices) {
                     val element = elements[k]
+                    if (element.boundingBox == null) {
+                        textCount++
+                        continue
+                    }
                     translator.translate(
                         element.text,
                         object : TranslateResultListener {
                             override fun onSuccess(text: String) {
-                                val backgroundPaint = Paint()
-                                backgroundPaint.color = Color.WHITE
-                                canvas!!.drawRect(element.boundingBox!!, backgroundPaint)
-                                val newWidth = paint.measureText(text)
-                                paint.textSize =
-                                    abs(element.boundingBox!!.width()) / newWidth * paint.textSize
-                                canvas!!.drawText(
-                                    text,
-                                    element.boundingBox?.left?.toFloat() ?: 0f,
-                                    element.boundingBox?.bottom?.toFloat() ?: 0f,
-                                    paint
-                                )
+                                drawWhiteBox(canvas, element.boundingBox!!)
+                                drawTextAccordingToBox(canvas, paint, element.boundingBox!!, text)
                                 if (++textCount >= blocks.size * lines.size * elements.size) {
                                     callback.onSuccess(bitmap)
+                                    translator.close()
                                 }
                             }
+
                             override fun onFailure(message: String) {
                                 Timber.e("translate: $message")
+                                translator.close()
                                 callback.onFailure(message)
                             }
                         })
                 }
             }
         }
-        return bitmap
+        return
+    }
+
+    private fun drawWhiteBox(canvas: Canvas, rect: Rect) {
+        val backgroundPaint = Paint()
+        backgroundPaint.color = Color.WHITE
+        canvas.drawRect(rect, backgroundPaint)
+    }
+
+    private fun drawTextAccordingToBox(canvas: Canvas, paint: Paint, rect: Rect, text: String) {
+//        val newWidth = paint.measureText(text)
+//      paint.textSize = abs(rect.width()) / newWidth * paint.textSize
+        paint.textSize = calculateMaxTextSize(text, paint,
+            rect.width().toFloat(), rect.height().toFloat())
+        canvas.drawText(text, rect.left.toFloat(), rect.bottom.toFloat(), paint)
+    }
+
+    private fun calculateMaxTextSize(
+        text: String,
+        paint: Paint,
+        maxWidth: Float,
+        maxHeight: Float
+    ): Float {
+        val bound = Rect()
+        var size = 1.0f
+        val step = 1.0f
+        while (true) {
+            paint.getTextBounds(text, 0, text.length, bound)
+            if (bound.width() < maxWidth && bound.height() < maxHeight) {
+                size += step
+                paint.textSize = size
+            } else {
+                return size - step
+            }
+        }
     }
 }
