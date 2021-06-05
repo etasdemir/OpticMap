@@ -6,6 +6,7 @@ import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Paint
 import android.net.Uri
+import com.elacqua.opticmap.util.UIState
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
@@ -20,26 +21,34 @@ class MLKitOCRHandler(
     private val translator: MLTranslator
 ) {
     fun runTextRecognition(imageUri: Uri, callback: OCRResultListener) {
+        UIState.isLoadingState.postValue(true)
         val image = InputImage.fromFilePath(context, imageUri)
         val recognizer: TextRecognizer =
             TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         recognizer.process(image)
             .addOnSuccessListener { texts ->
-                val bitmap = processTextRecognitionResult(texts, image)
-                callback.onSuccess(bitmap)
+                processTextRecognitionResult(texts, image, callback)
             }
             .addOnFailureListener { e ->
                 callback.onFailure(e.stackTraceToString())
             }
+            .addOnCompleteListener {
+                UIState.isLoadingState.postValue(false)
+            }
     }
 
-    private fun processTextRecognitionResult(texts: Text, image: InputImage): Bitmap? {
+    private fun processTextRecognitionResult(
+        texts: Text,
+        image: InputImage,
+        callback: OCRResultListener
+    ): Bitmap? {
         val blocks = texts.textBlocks
         if (blocks.size == 0) {
             return null
         }
         var bitmap: Bitmap? = null
         var canvas: Canvas? = null
+        var textCount = 0
         val paint = Paint()
         paint.color = Color.BLACK
         image.bitmapInternal?.let {
@@ -70,10 +79,13 @@ class MLKitOCRHandler(
                                     element.boundingBox?.bottom?.toFloat() ?: 0f,
                                     paint
                                 )
+                                if (++textCount >= blocks.size * lines.size * elements.size) {
+                                    callback.onSuccess(bitmap)
+                                }
                             }
-
                             override fun onFailure(message: String) {
                                 Timber.e("translate: $message")
+                                callback.onFailure(message)
                             }
                         })
                 }

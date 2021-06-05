@@ -15,7 +15,6 @@ class MLTranslator(private val langFrom: Languages, private val langTo: Language
         val conditions = DownloadConditions.Builder().build()
         translator.downloadModelIfNeeded(conditions)
             .addOnSuccessListener {
-                Timber.e("Model Downloaded")
                 onFinish()
             }
             .addOnFailureListener { exception ->
