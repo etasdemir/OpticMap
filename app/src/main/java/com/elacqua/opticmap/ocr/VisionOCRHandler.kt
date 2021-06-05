@@ -8,7 +8,7 @@ import com.google.android.gms.vision.text.TextRecognizer
 import timber.log.Timber
 
 
-object OCRHandler {
+object VisionOCRHandler {
     private lateinit var textRecognizer: TextRecognizer
 
     suspend fun getTextFromBitmap(image: Bitmap, appContext: Context): String {
@@ -18,7 +18,7 @@ object OCRHandler {
         }
         var result = ""
         if (!textRecognizer.isOperational) {
-            Timber.e("OCRHandler::getTextFromBitmap TextRecognizer is not operational ")
+            Timber.e("VisionOCRHandler::getTextFromBitmap TextRecognizer is not operational ")
         } else {
             val frame = Frame.Builder().setBitmap(image).build()
             val items = textRecognizer.detect(frame)

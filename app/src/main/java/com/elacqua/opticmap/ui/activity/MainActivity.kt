@@ -61,8 +61,8 @@ class MainActivity : AppCompatActivity() {
                         ImageDecoder.decodeBitmap(source)
                     }
                     saveImageToGallery(bitmap)
-                    cacheDir.deleteRecursively()
                     navigateToOcrFragment(bitmap)
+//                    cacheDir.deleteRecursively()
                 }
             }
             UCrop.RESULT_ERROR -> {
@@ -75,7 +75,7 @@ class MainActivity : AppCompatActivity() {
 
     @Suppress("DEPRECATION")
     private fun saveImageToGallery(bitmap: Bitmap) {
-        val filename = "${System.currentTimeMillis()}.jpeg"
+        val filename = "${System.currentTimeMillis()}.jpg"
         MediaStore.Images.Media.insertImage(contentResolver, bitmap, filename, "OpticMap image")
     }
 

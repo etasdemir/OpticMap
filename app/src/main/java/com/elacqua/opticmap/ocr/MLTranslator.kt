@@ -15,7 +15,7 @@ class MLTranslator {
     private val _translatedText = MutableLiveData<String>()
     val  translatedText : LiveData<String> = _translatedText
 
-    private suspend fun downloadModel(onFinish: () -> Unit){
+    private fun downloadModel(onFinish: () -> Unit){
         val conditions = DownloadConditions.Builder().build()
         translator.downloadModelIfNeeded(conditions)
             .addOnSuccessListener {
@@ -27,7 +27,7 @@ class MLTranslator {
             }
     }
 
-    suspend fun translate(text : String, from: Languages, to: Languages){
+    fun translate(text : String, from: Languages, to: Languages){
         UIState.isLoadingState.postValue(true)
         val options: TranslatorOptions = TranslatorOptions.Builder()
             .setSourceLanguage(from.shortName)

@@ -89,7 +89,7 @@ class HomeFragment : Fragment() {
         val outputDir = requireContext().cacheDir
         val outputFile = File.createTempFile(
             System.currentTimeMillis().toString(),
-            ".jpeg",
+            ".jpg",
             outputDir
         )
         val stream = FileOutputStream(outputFile.absolutePath)
@@ -102,7 +102,7 @@ class HomeFragment : Fragment() {
         val outputDir = requireContext().cacheDir
         val outputFile = File.createTempFile(
             System.currentTimeMillis().toString(),
-            ".jpeg",
+            ".jpg",
             outputDir
         )
 

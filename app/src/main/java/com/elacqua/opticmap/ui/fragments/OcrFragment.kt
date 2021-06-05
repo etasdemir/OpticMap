@@ -1,5 +1,6 @@
 package com.elacqua.opticmap.ui.fragments
 
+
 import android.graphics.Bitmap
 import android.os.Bundle
 import android.view.LayoutInflater
@@ -7,15 +8,19 @@ import android.view.View
 import android.view.ViewGroup
 import androidx.fragment.app.Fragment
 import com.elacqua.opticmap.databinding.FragmentOcrBinding
+import com.elacqua.opticmap.ocr.MLKitOCRHandler
 import com.elacqua.opticmap.ocr.MLTranslator
-import com.elacqua.opticmap.ocr.OCRHandler
+import com.elacqua.opticmap.ocr.OCRResult
+import com.elacqua.opticmap.ocr.VisionOCRHandler
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Languages
 import com.elacqua.opticmap.util.SharedPref
+import com.google.mlkit.vision.text.Text
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
+import timber.log.Timber
 
 
 class OcrFragment : Fragment() {
@@ -43,21 +48,27 @@ class OcrFragment : Fragment() {
 
     private fun getArgs() {
         image = arguments?.get(Constant.OCR_IMAGE_KEY) as Bitmap
-        binding?.imgOcrPicture?.setImageBitmap(image)
-        val pref = SharedPref(requireContext())
-        langFrom = Languages.getLanguageFromShortName(pref.langFrom)
-        langTo = Languages.getLanguageFromShortName(pref.langTo)
+        if (image != null) {
+            binding?.imgOcrPicture?.setImageBitmap(image)
+            val pref = SharedPref(requireContext())
+            langFrom = Languages.getLanguageFromShortName(pref.langFrom)
+            langTo = Languages.getLanguageFromShortName(pref.langTo)
+        }
     }
 
     private fun getTextFromImage() {
         if (image != null) {
-            CoroutineScope(Dispatchers.IO).launch {
-                val ocrResult = OCRHandler.getTextFromBitmap(image!!, context?.applicationContext!!)
-                translator.translate(ocrResult, langFrom, langTo)
-                withContext(Dispatchers.Main) {
-                    binding?.txtOcrResult?.text = ocrResult
+//                val ocrResult = VisionOCRHandler.getTextFromBitmap(image!!, context?.applicationContext!!)
+            MLKitOCRHandler.runTextRecognition(image!!, object: OCRResult {
+                override fun onSuccess(text: String) {
+                    translator.translate(text, langFrom, langTo)
+                    binding?.txtOcrResult?.text = text
                 }
-            }
+
+                override fun onFailure(message: String) {
+                    Timber.e("OCR failed: $message")
+                }
+            })
         }
     }
 
