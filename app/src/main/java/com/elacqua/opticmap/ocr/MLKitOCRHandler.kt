@@ -9,6 +9,8 @@ import com.google.mlkit.vision.text.TextRecognition
 import com.google.mlkit.vision.text.TextRecognizer
 import com.google.mlkit.vision.text.TextRecognizerOptions
 import timber.log.Timber
+import kotlin.math.abs
+
 
 class MLKitOCRHandler(
     private val context: Context,
@@ -82,30 +84,20 @@ class MLKitOCRHandler(
     }
 
     private fun drawTextAccordingToBox(canvas: Canvas, paint: Paint, rect: Rect, text: String) {
-//        val newWidth = paint.measureText(text)
-//      paint.textSize = abs(rect.width()) / newWidth * paint.textSize
-        paint.textSize = calculateMaxTextSize(text, paint,
-            rect.width().toFloat(), rect.height().toFloat())
-        canvas.drawText(text, rect.left.toFloat(), rect.bottom.toFloat(), paint)
-    }
+//        val newWidth = paint.measureText(text, 0, text.length)
+//        paint.textAlign = Paint.Align.CENTER
+//        paint.textSize =
+//            abs(rect.width()) / newWidth * paint.textSize
+//        canvas.drawText(text, rect.left.toFloat(), rect.bottom.toFloat(), paint)
 
-    private fun calculateMaxTextSize(
-        text: String,
-        paint: Paint,
-        maxWidth: Float,
-        maxHeight: Float
-    ): Float {
-        val bound = Rect()
-        var size = 1.0f
-        val step = 1.0f
-        while (true) {
-            paint.getTextBounds(text, 0, text.length, bound)
-            if (bound.width() < maxWidth && bound.height() < maxHeight) {
-                size += step
-                paint.textSize = size
-            } else {
-                return size - step
-            }
-        }
+        val newWidth = paint.measureText(text, 0, text.length)
+        paint.textAlign = Paint.Align.CENTER
+        paint.textSize =
+            abs(rect.width()) / newWidth * paint.textSize
+
+        val top = paint.fontMetrics.top
+        val bottom = paint.fontMetrics.bottom
+        val baseLineY = (rect.centerY() - top/2 - bottom/2)
+        canvas.drawText(text, rect.centerX().toFloat(), baseLineY, paint)
     }
 }

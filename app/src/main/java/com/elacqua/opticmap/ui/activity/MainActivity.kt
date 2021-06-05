@@ -18,6 +18,7 @@ import com.elacqua.opticmap.util.getBitmapFromUri
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.yalantis.ucrop.UCrop
 import timber.log.Timber
+import java.io.File
 
 
 class MainActivity : AppCompatActivity() {
@@ -54,9 +55,14 @@ class MainActivity : AppCompatActivity() {
             UCrop.REQUEST_CROP -> {
                 if (data != null) {
                     val resultUri = UCrop.getOutput(data)
-                    val savedUri = saveImageToGallery(getBitmapFromUri(resultUri!!, contentResolver))
+                    val savedUri = saveImageToGallery(
+                        getBitmapFromUri(
+                            resultUri!!,
+                            contentResolver
+                        )
+                    )
                     navigateToOcrFragment(savedUri!!)
-//                    cacheDir.deleteRecursively()
+                    deleteFiles(cacheDir.absolutePath, ".png")
                 }
             }
             UCrop.RESULT_ERROR -> {
@@ -70,12 +76,32 @@ class MainActivity : AppCompatActivity() {
     @Suppress("DEPRECATION")
     private fun saveImageToGallery(bitmap: Bitmap): Uri? {
         val filename = "${System.currentTimeMillis()}.png"
-        val url = MediaStore.Images.Media.insertImage(contentResolver, bitmap, filename, "OpticMap image")
+        val url = MediaStore.Images.Media.insertImage(
+            contentResolver,
+            bitmap,
+            filename,
+            "OpticMap image"
+        )
         return Uri.parse(url)
     }
 
     private fun navigateToOcrFragment(imageUri: Uri) {
         val args = bundleOf(Constant.OCR_IMAGE_KEY to imageUri)
-        findNavController(R.id.nav_host_fragment).navigate(R.id.action_navigation_home_to_ocrFragment, args)
+        findNavController(R.id.nav_host_fragment).navigate(
+            R.id.action_navigation_home_to_ocrFragment,
+            args
+        )
+    }
+
+    private fun deleteFiles(dirPath: String, ext: String) {
+        val dir = File(dirPath)
+        if (!dir.exists()) return
+        val fList: Array<File> = dir.listFiles()!!
+        for (f in fList) {
+            if (f.name.endsWith(ext)) {
+                Timber.e("File deleted: ${f.name}")
+                f.delete()
+            }
+        }
     }
 }

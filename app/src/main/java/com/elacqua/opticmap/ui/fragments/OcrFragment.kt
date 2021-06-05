@@ -75,6 +75,7 @@ class OcrFragment : Fragment() {
     }
 
     override fun onDestroy() {
+        UIState.isLoadingState.value = false
         binding = null
         super.onDestroy()
     }
