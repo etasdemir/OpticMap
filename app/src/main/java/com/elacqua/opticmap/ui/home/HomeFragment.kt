@@ -89,7 +89,7 @@ class HomeFragment : Fragment() {
         val outputDir = requireContext().cacheDir
         val outputFile = File.createTempFile(
             System.currentTimeMillis().toString(),
-            ".jpg",
+            ".png",
             outputDir
         )
         val stream = FileOutputStream(outputFile.absolutePath)
@@ -102,14 +102,13 @@ class HomeFragment : Fragment() {
         val outputDir = requireContext().cacheDir
         val outputFile = File.createTempFile(
             System.currentTimeMillis().toString(),
-            ".jpg",
+            ".png",
             outputDir
         )
 
         val options = UCrop.Options().apply {
             setFreeStyleCropEnabled(true)
             setCompressionQuality(100)
-            setHideBottomControls(false)
             setToolbarColor(ContextCompat.getColor(requireContext(), R.color.edit_toolbar))
             setStatusBarColor(ContextCompat.getColor(requireContext(), R.color.edit_status_bar))
             setToolbarTitle(getString(R.string.edit_photo))

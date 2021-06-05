@@ -3,6 +3,7 @@ package com.elacqua.opticmap.ui.activity
 import android.content.Intent
 import android.graphics.Bitmap
 import android.graphics.ImageDecoder
+import android.net.Uri
 import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
@@ -15,6 +16,7 @@ import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.ActivityMainBinding
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.UIState
+import com.elacqua.opticmap.util.getBitmapFromUri
 import com.google.android.material.bottomnavigation.BottomNavigationView
 import com.yalantis.ucrop.UCrop
 import timber.log.Timber
@@ -54,15 +56,9 @@ class MainActivity : AppCompatActivity() {
             UCrop.REQUEST_CROP -> {
                 if (data != null) {
                     val resultUri = UCrop.getOutput(data)
-                    val bitmap = if (Build.VERSION.SDK_INT < 28) {
-                        MediaStore.Images.Media.getBitmap(contentResolver, resultUri)
-                    } else {
-                        val source = ImageDecoder.createSource(contentResolver, resultUri!!)
-                        ImageDecoder.decodeBitmap(source)
-                    }
-                    saveImageToGallery(bitmap)
-                    navigateToOcrFragment(bitmap)
-//                    cacheDir.deleteRecursively()
+                    val savedUri = saveImageToGallery(getBitmapFromUri(resultUri!!, contentResolver))
+                    navigateToOcrFragment(savedUri!!)
+                    cacheDir.deleteRecursively()
                 }
             }
             UCrop.RESULT_ERROR -> {
@@ -74,13 +70,14 @@ class MainActivity : AppCompatActivity() {
     }
 
     @Suppress("DEPRECATION")
-    private fun saveImageToGallery(bitmap: Bitmap) {
-        val filename = "${System.currentTimeMillis()}.jpg"
-        MediaStore.Images.Media.insertImage(contentResolver, bitmap, filename, "OpticMap image")
+    private fun saveImageToGallery(bitmap: Bitmap): Uri? {
+        val filename = "${System.currentTimeMillis()}.png"
+        val url = MediaStore.Images.Media.insertImage(contentResolver, bitmap, filename, "OpticMap image")
+        return Uri.parse(url)
     }
 
-    private fun navigateToOcrFragment(image: Bitmap) {
-        val args = bundleOf(Constant.OCR_IMAGE_KEY to image)
+    private fun navigateToOcrFragment(imageUri: Uri) {
+        val args = bundleOf(Constant.OCR_IMAGE_KEY to imageUri)
         findNavController(R.id.nav_host_fragment).navigate(R.id.action_navigation_home_to_ocrFragment, args)
     }
 }
