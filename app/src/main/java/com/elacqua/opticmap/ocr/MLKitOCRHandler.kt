@@ -26,8 +26,7 @@ class MLKitOCRHandler(
         recognizer.process(image)
             .addOnSuccessListener { texts ->
                 val bitmap = processTextRecognitionResult(texts, image)
-                val result = texts.text
-                callback.onSuccess(result, bitmap)
+                callback.onSuccess(bitmap)
             }
             .addOnFailureListener { e ->
                 callback.onFailure(e.stackTraceToString())

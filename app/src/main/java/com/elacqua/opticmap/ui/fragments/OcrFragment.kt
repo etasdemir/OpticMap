@@ -43,7 +43,7 @@ class OcrFragment : Fragment() {
         if (imageUri != null) {
             val ocr = MLKitOCRHandler(requireContext(), MLTranslator(langFrom, langTo))
             ocr.runTextRecognition(imageUri!!, object: OCRResultListener {
-                override fun onSuccess(text: String, bitmap: Bitmap?) {
+                override fun onSuccess(bitmap: Bitmap?) {
                     if (bitmap == null) {
                         binding?.imgOcrPicture?.setImageURI(imageUri)
                     } else {
