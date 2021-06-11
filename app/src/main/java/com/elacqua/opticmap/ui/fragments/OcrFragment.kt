@@ -11,6 +11,7 @@ import com.elacqua.opticmap.databinding.FragmentOcrBinding
 import com.elacqua.opticmap.ocr.MLKitOCRHandler
 import com.elacqua.opticmap.ocr.MLTranslator
 import com.elacqua.opticmap.ocr.OCRResultListener
+import com.elacqua.opticmap.ocr.RecognitionOptions
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.Languages
 import com.elacqua.opticmap.util.SharedPref
@@ -28,7 +29,7 @@ class OcrFragment : Fragment() {
         super.onViewCreated(view, savedInstanceState)
 
         getArgs()
-        getTextFromImage()
+        getTextFromImage(RecognitionOptions.TRANSLATE_BLOCKS)
     }
 
     private fun getArgs() {
@@ -40,12 +41,12 @@ class OcrFragment : Fragment() {
         }
     }
 
-    private fun getTextFromImage() {
+    private fun getTextFromImage(option: RecognitionOptions) {
         if (imageUri != null) {
             UIState.isLoadingState.value = true
             MLTranslator(langFrom, langTo) {
                 val ocr = MLKitOCRHandler(requireContext(), it)
-                ocr.runTextRecognition(imageUri!!, object: OCRResultListener {
+                ocr.runTextRecognition(imageUri!!, option, object: OCRResultListener {
                     override fun onSuccess(bitmap: Bitmap?) {
                         if (bitmap == null) {
                             binding?.imgOcrPicture?.setImageURI(imageUri)

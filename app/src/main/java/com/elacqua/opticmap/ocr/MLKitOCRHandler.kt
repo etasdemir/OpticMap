@@ -11,38 +11,41 @@ import com.google.mlkit.vision.text.TextRecognizerOptions
 import timber.log.Timber
 import kotlin.math.abs
 
-
 class MLKitOCRHandler(
     private val context: Context,
     private val translator: MLTranslator
 ) {
-    fun runTextRecognition(imageUri: Uri, callback: OCRResultListener) {
+    fun runTextRecognition(imageUri: Uri, recognitionOptions: RecognitionOptions, callback: OCRResultListener) {
         val image = InputImage.fromFilePath(context, imageUri)
         val recognizer: TextRecognizer =
             TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         recognizer.process(image)
             .addOnSuccessListener { texts ->
-                processTextRecognitionResult(texts, image, callback)
+                if (image.bitmapInternal != null && texts.textBlocks.size > 0) {
+                    val bitmap = image.bitmapInternal!!.copy(Bitmap.Config.ARGB_8888, true)
+                    when (recognitionOptions) {
+                        RecognitionOptions.TRANSLATE_BLOCKS ->
+                            processImageBlocks(texts, bitmap, callback)
+                        RecognitionOptions.TRANSLATE_LINES ->
+                            processImageLines(texts, bitmap, callback)
+                        RecognitionOptions.TRANSLATE_WHOLE ->
+                            processImageWhole(texts, bitmap, callback)
+                    }
+                }
             }
             .addOnFailureListener { e ->
                 callback.onFailure(e.stackTraceToString())
             }
     }
 
-    private fun processTextRecognitionResult(
+    private fun processImageBlocks(
         texts: Text,
-        image: InputImage,
+        bitmap: Bitmap,
         callback: OCRResultListener
     ) {
         val blocks = texts.textBlocks
-        if (blocks.size == 0 || image.bitmapInternal == null) {
-            return
-        }
-        val bitmap = image.bitmapInternal!!.copy(Bitmap.Config.ARGB_8888, true)
         val canvas = Canvas(bitmap)
         var textCount = 0
-        val paint = Paint()
-        paint.color = Color.BLACK
         for (i in blocks.indices) {
             val lines = blocks[i].lines
             for (j in lines.indices) {
@@ -57,8 +60,7 @@ class MLKitOCRHandler(
                         element.text,
                         object : TranslateResultListener {
                             override fun onSuccess(text: String) {
-                                drawWhiteBox(canvas, element.boundingBox!!)
-                                drawTextAccordingToBox(canvas, paint, element.boundingBox!!, text)
+                                drawBoxes(canvas, element.boundingBox!!, text)
                                 if (++textCount >= blocks.size * lines.size * elements.size) {
                                     callback.onSuccess(bitmap)
                                     translator.close()
@@ -66,15 +68,92 @@ class MLKitOCRHandler(
                             }
 
                             override fun onFailure(message: String) {
-                                Timber.e("translate: $message")
+                                Timber.e("processImageBlocks: $message")
                                 translator.close()
                                 callback.onFailure(message)
                             }
                         })
+
                 }
             }
         }
         return
+    }
+
+    private fun processImageLines(
+        texts: Text,
+        bitmap: Bitmap,
+        callback: OCRResultListener
+    ) {
+        val blocks = texts.textBlocks
+        val canvas = Canvas(bitmap)
+        var lineCount = 0
+        for (i in blocks.indices) {
+            val lines = blocks[i].lines
+            for (j in lines.indices) {
+                if (lines[j].boundingBox == null) {
+                    lineCount++
+                    continue
+                }
+                translator.translate(
+                    lines[j].text,
+                    object : TranslateResultListener {
+                        override fun onSuccess(text: String) {
+                            drawBoxes(canvas, lines[j].boundingBox!!, text)
+                            if (++lineCount >= blocks.size * lines.size) {
+                                callback.onSuccess(bitmap)
+                                translator.close()
+                            }
+                        }
+
+                        override fun onFailure(message: String) {
+                            Timber.e("processImageLines: $message")
+                            translator.close()
+                            callback.onFailure(message)
+                        }
+                    })
+            }
+        }
+        return
+    }
+
+    private fun processImageWhole(
+        texts: Text,
+        bitmap: Bitmap,
+        callback: OCRResultListener
+    ) {
+        val blocks = texts.textBlocks
+        val canvas = Canvas(bitmap)
+        var lineCount = 0
+        for (i in blocks.indices) {
+            if (blocks[i].boundingBox == null) {
+                lineCount++
+                continue
+            }
+            translator.translate(
+                blocks[i].text,
+                object : TranslateResultListener {
+                    override fun onSuccess(text: String) {
+                        drawBoxes(canvas, blocks[i].boundingBox!!, text)
+                        if (++lineCount >= blocks.size) {
+                            callback.onSuccess(bitmap)
+                            translator.close()
+                        }
+                    }
+
+                    override fun onFailure(message: String) {
+                        Timber.e("processImageLines: $message")
+                        translator.close()
+                        callback.onFailure(message)
+                    }
+                })
+        }
+        return
+    }
+
+    private fun drawBoxes(canvas: Canvas, rect: Rect, text: String) {
+        drawWhiteBox(canvas, rect)
+        drawTextAccordingToBox(canvas, rect, text)
     }
 
     private fun drawWhiteBox(canvas: Canvas, rect: Rect) {
@@ -83,8 +162,10 @@ class MLKitOCRHandler(
         canvas.drawRect(rect, backgroundPaint)
     }
 
-    private fun drawTextAccordingToBox(canvas: Canvas, paint: Paint, rect: Rect, text: String) {
+    private fun drawTextAccordingToBox(canvas: Canvas, rect: Rect, text: String) {
+        val paint = Paint()
         val tempRect = Rect()
+        paint.color = Color.BLACK
         paint.getTextBounds(text, 0, text.length, tempRect)
         if (tempRect.width() < rect.width() && tempRect.height() < rect.height()) {
             calculateMaxTextSize(text, paint, rect.width().toFloat(), rect.height().toFloat())
