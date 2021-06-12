@@ -6,9 +6,6 @@
     <string name="title_profile">Profile</string>
     <string name="cancel">Cancel</string>
 
-    <!--Download Trained Data-->
-    <string name="download_notification">Downloading selected language</string>
-
     <!--Home -->
     <string name="home_no_internet">No internet connection found!</string>
     <string name="home_open_settings">Open Settings</string>
@@ -21,5 +18,8 @@
     <string name="home_select_language">Please select the language from or to</string>
 
     <string name="edit_photo">Edit photo</string>
+    <string name="ocr_options_block">Block</string>
+    <string name="ocr_options_line">Line</string>
+    <string name="ocr_options_whole">Whole</string>
 
 </resources>

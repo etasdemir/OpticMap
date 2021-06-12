@@ -1,8 +1,12 @@
 package com.elacqua.opticmap.ocr
 
+import android.R.attr.bitmap
 import android.content.Context
 import android.graphics.*
 import android.net.Uri
+import android.text.Layout
+import android.text.StaticLayout
+import android.text.TextPaint
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
@@ -11,11 +15,16 @@ import com.google.mlkit.vision.text.TextRecognizerOptions
 import timber.log.Timber
 import kotlin.math.abs
 
+
 class MLKitOCRHandler(
     private val context: Context,
     private val translator: MLTranslator
 ) {
-    fun runTextRecognition(imageUri: Uri, recognitionOptions: RecognitionOptions, callback: OCRResultListener) {
+    fun runTextRecognition(
+        imageUri: Uri,
+        recognitionOptions: RecognitionOptions,
+        callback: OCRResultListener
+    ) {
         val image = InputImage.fromFilePath(context, imageUri)
         val recognizer: TextRecognizer =
             TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
@@ -38,6 +47,16 @@ class MLKitOCRHandler(
             }
     }
 
+    fun ocrToSpeech(imageUri: Uri, callback: TranslateResultListener) {
+        val image = InputImage.fromFilePath(context, imageUri)
+        val recognizer: TextRecognizer =
+            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
+        recognizer.process(image)
+            .addOnSuccessListener { texts ->
+                translator.translate(texts.text, callback)
+            }
+    }
+
     private fun processImageBlocks(
         texts: Text,
         bitmap: Bitmap,
@@ -52,15 +71,13 @@ class MLKitOCRHandler(
                 val elements = lines[j].elements
                 for (k in elements.indices) {
                     val element = elements[k]
-                    if (element.boundingBox == null) {
-                        textCount++
-                        continue
-                    }
                     translator.translate(
                         element.text,
                         object : TranslateResultListener {
                             override fun onSuccess(text: String) {
-                                drawBoxes(canvas, element.boundingBox!!, text)
+                                if (element.boundingBox != null) {
+                                    drawBoxes(canvas, element.boundingBox!!, text)
+                                }
                                 if (++textCount >= blocks.size * lines.size * elements.size) {
                                     callback.onSuccess(bitmap)
                                     translator.close()
@@ -91,15 +108,13 @@ class MLKitOCRHandler(
         for (i in blocks.indices) {
             val lines = blocks[i].lines
             for (j in lines.indices) {
-                if (lines[j].boundingBox == null) {
-                    lineCount++
-                    continue
-                }
                 translator.translate(
                     lines[j].text,
                     object : TranslateResultListener {
                         override fun onSuccess(text: String) {
-                            drawBoxes(canvas, lines[j].boundingBox!!, text)
+                            if (lines[j].boundingBox != null) {
+                                drawBoxes(canvas, lines[j].boundingBox!!, text)
+                            }
                             if (++lineCount >= blocks.size * lines.size) {
                                 callback.onSuccess(bitmap)
                                 translator.close()
@@ -126,15 +141,13 @@ class MLKitOCRHandler(
         val canvas = Canvas(bitmap)
         var lineCount = 0
         for (i in blocks.indices) {
-            if (blocks[i].boundingBox == null) {
-                lineCount++
-                continue
-            }
             translator.translate(
                 blocks[i].text,
                 object : TranslateResultListener {
                     override fun onSuccess(text: String) {
-                        drawBoxes(canvas, blocks[i].boundingBox!!, text)
+                        if (blocks[i].boundingBox != null) {
+                            drawBoxes(canvas, blocks[i].boundingBox!!, text)
+                        }
                         if (++lineCount >= blocks.size) {
                             callback.onSuccess(bitmap)
                             translator.close()

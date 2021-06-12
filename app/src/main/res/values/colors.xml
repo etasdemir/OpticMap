@@ -12,6 +12,7 @@
     <!--Edit Photo-->
     <color name="edit_toolbar">#FFFFFFFF</color>
     <color name="edit_status_bar">#FFFFFFFF</color>
-    <color name="edit_widgets">#B85F69</color>
+
+    <color name="primary_color">#B85F69</color>
 
 </resources>

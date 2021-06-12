@@ -112,7 +112,7 @@ class HomeFragment : Fragment() {
             setToolbarColor(ContextCompat.getColor(requireContext(), R.color.edit_toolbar))
             setStatusBarColor(ContextCompat.getColor(requireContext(), R.color.edit_status_bar))
             setToolbarTitle(getString(R.string.edit_photo))
-            setActiveControlsWidgetColor(ContextCompat.getColor(requireContext(), R.color.edit_widgets))
+            setActiveControlsWidgetColor(ContextCompat.getColor(requireContext(), R.color.primary_color))
             setCropFrameStrokeWidth(0)
         }
         UCrop.of(imageUri, Uri.fromFile(outputFile))

@@ -14,6 +14,9 @@ object Constant {
     const val APP_SHARED_PREFS = "Shared Pref"
     const val PREF_FROM_LANGUAGE_KEY = "OCR_FROM_LANGUAGE_KEY"
     const val PREF_TO_LANGUAGE_KEY = "OCR_TO_LANGUAGE_KEY"
+    const val PREF_OCR_RADIO_BUTTON = "PREF_OCR_RADIO_BUTTON"
+    const val DEFAULT_OCR_RADIO_BUTTON = "OcrRadioButtonBlock"
+
     // Args
     const val OCR_IMAGE_KEY = "OCR_IMAGE_KEY"
     const val PHOTO_EDIT_KEY = "PHOTO_EDIT_KEY"
