@@ -10,8 +10,11 @@ import android.view.ViewGroup
 import android.widget.RadioButton
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
-import androidx.fragment.app.viewModels
+import androidx.lifecycle.ViewModelProvider
 import com.elacqua.opticmap.R
+import com.elacqua.opticmap.data.LocalRepository
+import com.elacqua.opticmap.data.local.Place
+import com.elacqua.opticmap.data.local.PlacesDatabase
 import com.elacqua.opticmap.databinding.FragmentOcrBinding
 import com.elacqua.opticmap.ocr.*
 import com.elacqua.opticmap.util.*
@@ -21,7 +24,8 @@ import java.util.*
 
 class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
 
-    private val ocrViewModel by viewModels<OcrViewModel>()
+    private lateinit var placesDatabase: PlacesDatabase
+    private lateinit var ocrViewModel: OcrViewModel
     private lateinit var sharedPref: SharedPref
     private lateinit var tts: TextToSpeech
     private lateinit var ocr: MLKitOCRHandler
@@ -33,6 +37,10 @@ class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
+        placesDatabase = PlacesDatabase.getInstance(requireContext())
+        ocrViewModel = ViewModelProvider(this,
+            OcrViewModelFactory(LocalRepository(placesDatabase.getPlacesDao()))
+        ).get(OcrViewModel::class.java)
         getArgs()
         initOCR()
     }
@@ -66,7 +74,7 @@ class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
     private fun textToSpeech(texts: Text) {
         UIState.isLoadingState.value = true
         binding!!.btnOcrVoice.setOnClickListener {
-            ocr.ocrToSpeech(texts, object: TranslateResultListener{
+            ocr.ocrToSpeech(texts, object : TranslateResultListener {
                 override fun onSuccess(text: String) {
                     UIState.isLoadingState.value = false
                     tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
@@ -98,10 +106,16 @@ class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
             }
             setRadioBtnTextColor(btn as RadioButton)
         }
-        when(sharedPref.lastSelectedRadioButton) {
-            RecognitionOptions.TRANSLATE_BLOCKS.name -> { binding!!.radioBtnOcrBlock.isChecked = true }
-            RecognitionOptions.TRANSLATE_LINES.name -> { binding!!.radioBtnOcrLine.isChecked = true }
-            RecognitionOptions.TRANSLATE_WHOLE.name -> { binding!!.radioBtnOcrWhole.isChecked = true }
+        when (sharedPref.lastSelectedRadioButton) {
+            RecognitionOptions.TRANSLATE_BLOCKS.name -> {
+                binding!!.radioBtnOcrBlock.isChecked = true
+            }
+            RecognitionOptions.TRANSLATE_LINES.name -> {
+                binding!!.radioBtnOcrLine.isChecked = true
+            }
+            RecognitionOptions.TRANSLATE_WHOLE.name -> {
+                binding!!.radioBtnOcrWhole.isChecked = true
+            }
         }
     }
 
@@ -125,13 +139,14 @@ class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
         UIState.isLoadingState.value = true
         val bitmap = getBitmapFromUri(imageUri!!, requireContext().contentResolver)
         if (imageUri != null) {
-            ocr.translateText(bitmap, text, option, object: OCRResultListener<Bitmap>{
+            ocr.translateText(bitmap, text, option, object : OCRResultListener<Bitmap> {
                 override fun onSuccess(result: Bitmap?) {
                     UIState.isLoadingState.value = false
                     if (result == null) {
                         binding?.imgOcrPicture?.setImageURI(imageUri)
                     } else {
                         binding?.imgOcrPicture?.setImageBitmap(result)
+                        saveButtonHandler(result)
                     }
                 }
 
@@ -142,6 +157,19 @@ class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
                 }
             })
         }
+    }
+
+    private fun saveButtonHandler(img: Bitmap) {
+        // TODO
+        if (this.imageUri == null) {
+            return
+        }
+        val lat = 39.9865587
+        val long = 32.6161836
+        val name = "asdasdasdasd"
+        val imageArray = bitmapToByteArray(img)
+        val place = Place(0, name, lat, long, getEpochTime(), imageArray)
+        ocrViewModel.savePlace(place)
     }
 
     private fun getArgs() {

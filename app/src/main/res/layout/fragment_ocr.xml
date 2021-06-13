@@ -64,13 +64,13 @@
 
     <ImageButton
         android:id="@+id/btn_ocr_voice"
-        android:layout_width="48dp"
-        android:layout_height="48dp"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentBottom="true"
+        android:layout_marginEnd="@dimen/margin_extra_large"
+        android:layout_marginBottom="@dimen/margin_extra_large"
         android:background="@null"
         android:src="@drawable/ic_baseline_voice"
-        android:layout_alignParentBottom="true"
-        android:layout_alignParentEnd="true"
-        android:layout_marginBottom="@dimen/margin_extra_large"
-        android:layout_marginEnd="@dimen/margin_extra_large"
         app:layout_constraintTop_toTopOf="parent" />
 </RelativeLayout>

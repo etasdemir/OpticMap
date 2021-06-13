@@ -19,7 +19,11 @@
         android:id="@+id/navigation_places"
         android:name="com.elacqua.opticmap.ui.places.PlacesFragment"
         android:label="@string/title_places"
-        tools:layout="@layout/fragment_places" />
+        tools:layout="@layout/fragment_places" >
+        <action
+            android:id="@+id/action_navigation_places_to_placeFragment"
+            app:destination="@id/placeFragment" />
+    </fragment>
 
     <fragment
         android:id="@+id/navigation_profile"
@@ -31,5 +35,9 @@
         android:name="com.elacqua.opticmap.ui.fragments.OcrFragment"
         android:label="fragment_ocr"
         tools:layout="@layout/fragment_ocr" />
+    <fragment
+        android:id="@+id/placeFragment"
+        android:name="com.elacqua.opticmap.ui.fragments.PlaceFragment"
+        android:label="PlaceFragment" />
 
 </navigation>
