@@ -7,11 +7,7 @@ import com.google.mlkit.nl.translate.Translator
 import com.google.mlkit.nl.translate.TranslatorOptions
 import timber.log.Timber
 
-class MLTranslator(
-    langFrom: Languages,
-    langTo: Languages,
-    downloadOnFinish: (MLTranslator) -> Unit
-) {
+class MLTranslator(langFrom: Languages, langTo: Languages) {
     private var translator: Translator
 
     init {
@@ -20,17 +16,17 @@ class MLTranslator(
             .setTargetLanguage(langTo.shortName)
             .build()
         translator = Translation.getClient(options)
-        downloadModel(downloadOnFinish)
     }
 
-    private fun downloadModel(downloadOnFinish: (MLTranslator) -> Unit) {
+    fun downloadModel(downloadOnFinish: (Boolean) -> Unit) {
         val conditions = DownloadConditions.Builder().build()
         translator.downloadModelIfNeeded(conditions)
             .addOnSuccessListener {
-                downloadOnFinish(this)
+                downloadOnFinish(true)
             }
             .addOnFailureListener { exception ->
                 Timber.e("downloadModel: ${exception.message}")
+                downloadOnFinish(false)
             }
     }
 

@@ -1,8 +1,6 @@
 package com.elacqua.opticmap.ocr
 
-import android.graphics.Bitmap
-
-interface OCRResultListener {
-    fun onSuccess(bitmap: Bitmap?)
+interface OCRResultListener<T> {
+    fun onSuccess(result: T?)
     fun onFailure(message: String)
 }

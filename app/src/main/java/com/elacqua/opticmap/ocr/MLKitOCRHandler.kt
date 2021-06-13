@@ -1,12 +1,8 @@
 package com.elacqua.opticmap.ocr
 
-import android.R.attr.bitmap
 import android.content.Context
 import android.graphics.*
 import android.net.Uri
-import android.text.Layout
-import android.text.StaticLayout
-import android.text.TextPaint
 import com.google.mlkit.vision.common.InputImage
 import com.google.mlkit.vision.text.Text
 import com.google.mlkit.vision.text.TextRecognition
@@ -16,51 +12,48 @@ import timber.log.Timber
 import kotlin.math.abs
 
 
-class MLKitOCRHandler(
-    private val context: Context,
-    private val translator: MLTranslator
-) {
-    fun runTextRecognition(
-        imageUri: Uri,
-        recognitionOptions: RecognitionOptions,
-        callback: OCRResultListener
-    ) {
-        val image = InputImage.fromFilePath(context, imageUri)
+class MLKitOCRHandler(private val translator: MLTranslator) {
+    fun runTextRecognition(image: InputImage, ocrResultListener: OCRResultListener<Text>) {
         val recognizer: TextRecognizer =
             TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
         recognizer.process(image)
             .addOnSuccessListener { texts ->
-                if (image.bitmapInternal != null && texts.textBlocks.size > 0) {
-                    val bitmap = image.bitmapInternal!!.copy(Bitmap.Config.ARGB_8888, true)
-                    when (recognitionOptions) {
-                        RecognitionOptions.TRANSLATE_BLOCKS ->
-                            processImageBlocks(texts, bitmap, callback)
-                        RecognitionOptions.TRANSLATE_LINES ->
-                            processImageLines(texts, bitmap, callback)
-                        RecognitionOptions.TRANSLATE_WHOLE ->
-                            processImageWhole(texts, bitmap, callback)
-                    }
-                }
+                ocrResultListener.onSuccess(texts)
             }
             .addOnFailureListener { e ->
-                callback.onFailure(e.stackTraceToString())
+                ocrResultListener.onFailure(e.stackTraceToString())
             }
     }
 
-    fun ocrToSpeech(imageUri: Uri, callback: TranslateResultListener) {
-        val image = InputImage.fromFilePath(context, imageUri)
-        val recognizer: TextRecognizer =
-            TextRecognition.getClient(TextRecognizerOptions.DEFAULT_OPTIONS)
-        recognizer.process(image)
-            .addOnSuccessListener { texts ->
-                translator.translate(texts.text, callback)
+    fun translateText(
+        image: Bitmap,
+        texts: Text,
+        recognitionOptions: RecognitionOptions,
+        ocrResultListener: OCRResultListener<Bitmap>
+    ) {
+        if (texts.textBlocks.size > 0) {
+            val bitmap = image.copy(Bitmap.Config.ARGB_8888, true)
+            when (recognitionOptions) {
+                RecognitionOptions.TRANSLATE_BLOCKS ->
+                    processImageBlocks(texts, bitmap, ocrResultListener)
+                RecognitionOptions.TRANSLATE_LINES ->
+                    processImageLines(texts, bitmap, ocrResultListener)
+                RecognitionOptions.TRANSLATE_WHOLE ->
+                    processImageWhole(texts, bitmap, ocrResultListener)
             }
+        }
     }
+
+    fun ocrToSpeech(texts: Text, callback: TranslateResultListener) {
+        translator.translate(texts.text, callback)
+    }
+
+    fun getImageFromUri(uri: Uri, context: Context): InputImage = InputImage.fromFilePath(context, uri)
 
     private fun processImageBlocks(
         texts: Text,
         bitmap: Bitmap,
-        callback: OCRResultListener
+        callback: OCRResultListener<Bitmap>
     ) {
         val blocks = texts.textBlocks
         val canvas = Canvas(bitmap)
@@ -80,13 +73,11 @@ class MLKitOCRHandler(
                                 }
                                 if (++textCount >= blocks.size * lines.size * elements.size) {
                                     callback.onSuccess(bitmap)
-                                    translator.close()
                                 }
                             }
 
                             override fun onFailure(message: String) {
                                 Timber.e("processImageBlocks: $message")
-                                translator.close()
                                 callback.onFailure(message)
                             }
                         })
@@ -100,7 +91,7 @@ class MLKitOCRHandler(
     private fun processImageLines(
         texts: Text,
         bitmap: Bitmap,
-        callback: OCRResultListener
+        callback: OCRResultListener<Bitmap>
     ) {
         val blocks = texts.textBlocks
         val canvas = Canvas(bitmap)
@@ -117,13 +108,11 @@ class MLKitOCRHandler(
                             }
                             if (++lineCount >= blocks.size * lines.size) {
                                 callback.onSuccess(bitmap)
-                                translator.close()
                             }
                         }
 
                         override fun onFailure(message: String) {
                             Timber.e("processImageLines: $message")
-                            translator.close()
                             callback.onFailure(message)
                         }
                     })
@@ -135,7 +124,7 @@ class MLKitOCRHandler(
     private fun processImageWhole(
         texts: Text,
         bitmap: Bitmap,
-        callback: OCRResultListener
+        callback: OCRResultListener<Bitmap>
     ) {
         val blocks = texts.textBlocks
         val canvas = Canvas(bitmap)
@@ -150,13 +139,11 @@ class MLKitOCRHandler(
                         }
                         if (++lineCount >= blocks.size) {
                             callback.onSuccess(bitmap)
-                            translator.close()
                         }
                     }
 
                     override fun onFailure(message: String) {
                         Timber.e("processImageLines: $message")
-                        translator.close()
                         callback.onFailure(message)
                     }
                 })
@@ -208,5 +195,9 @@ class MLKitOCRHandler(
                 return size - step
             }
         }
+    }
+
+    fun closeTranslator() {
+        translator.close()
     }
 }

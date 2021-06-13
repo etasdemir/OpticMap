@@ -7,25 +7,24 @@ import android.speech.tts.TextToSpeech
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
-import android.widget.CompoundButton
 import android.widget.RadioButton
-import android.widget.RadioGroup
 import androidx.core.content.ContextCompat
 import androidx.fragment.app.Fragment
+import androidx.fragment.app.viewModels
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.databinding.FragmentOcrBinding
 import com.elacqua.opticmap.ocr.*
-import com.elacqua.opticmap.util.Constant
-import com.elacqua.opticmap.util.Languages
-import com.elacqua.opticmap.util.SharedPref
-import com.elacqua.opticmap.util.UIState
+import com.elacqua.opticmap.util.*
+import com.google.mlkit.vision.text.Text
 import timber.log.Timber
 import java.util.*
 
 class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
 
+    private val ocrViewModel by viewModels<OcrViewModel>()
     private lateinit var sharedPref: SharedPref
     private lateinit var tts: TextToSpeech
+    private lateinit var ocr: MLKitOCRHandler
     private var binding: FragmentOcrBinding? = null
     private var imageUri: Uri? = null
     private var langFrom: Languages = Constant.DEFAULT_LANGUAGE
@@ -34,31 +33,114 @@ class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
     override fun onViewCreated(view: View, savedInstanceState: Bundle?) {
         super.onViewCreated(view, savedInstanceState)
 
-        tts = TextToSpeech(requireContext().applicationContext, this)
         getArgs()
-        handleRadioButtons()
-        textToSpeech()
+        initOCR()
     }
 
-    private fun textToSpeech() {
-        binding!!.btnOcrVoice.setOnClickListener {
-            if (imageUri != null) {
-                UIState.isLoadingState.value = true
-                MLTranslator(langFrom, langTo) {
-                    val ocr = MLKitOCRHandler(requireContext(), it)
-                    ocr.ocrToSpeech(imageUri!!, object: TranslateResultListener{
-                        override fun onSuccess(text: String) {
-                            UIState.isLoadingState.value = false
-                            tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
-                        }
-
-                        override fun onFailure(message: String) {
-                            Timber.e("OCR failed: $message")
-                            UIState.isLoadingState.value = false
-                        }
-                    })
-                }
+    private fun initOCR() {
+        UIState.isLoadingState.value = true
+        tts = TextToSpeech(requireContext().applicationContext, this)
+        val translator = MLTranslator(langFrom, langTo)
+        ocr = MLKitOCRHandler(translator)
+        translator.downloadModel { success ->
+            if (success) {
+                recognizeText()
             }
+            UIState.isLoadingState.value = false
+        }
+    }
+
+    private fun recognizeText() {
+        UIState.isLoadingState.value = true
+        val img = ocr.getImageFromUri(imageUri!!, requireContext())
+        ocrViewModel.recognizeText(img, ocr)
+        ocrViewModel.textsOnImage.observe(viewLifecycleOwner, { texts ->
+            if (texts != null) {
+                textToSpeech(texts)
+                handleRadioButtons(texts)
+            }
+            UIState.isLoadingState.value = false
+        })
+    }
+
+    private fun textToSpeech(texts: Text) {
+        UIState.isLoadingState.value = true
+        binding!!.btnOcrVoice.setOnClickListener {
+            ocr.ocrToSpeech(texts, object: TranslateResultListener{
+                override fun onSuccess(text: String) {
+                    UIState.isLoadingState.value = false
+                    tts.speak(text, TextToSpeech.QUEUE_FLUSH, null, null)
+                }
+
+                override fun onFailure(message: String) {
+                    UIState.isLoadingState.value = false
+                }
+            })
+        }
+    }
+
+    private fun handleRadioButtons(text: Text) {
+        binding!!.radioBtnOcrBlock.setOnCheckedChangeListener { btn, isChecked ->
+            if (isChecked) {
+                setLastRadioButton(text, RecognitionOptions.TRANSLATE_BLOCKS)
+            }
+            setRadioBtnTextColor(btn as RadioButton)
+        }
+        binding!!.radioBtnOcrLine.setOnCheckedChangeListener { btn, isChecked ->
+            if (isChecked) {
+                setLastRadioButton(text, RecognitionOptions.TRANSLATE_LINES)
+            }
+            setRadioBtnTextColor(btn as RadioButton)
+        }
+        binding!!.radioBtnOcrWhole.setOnCheckedChangeListener { btn, isChecked ->
+            if (isChecked) {
+                setLastRadioButton(text, RecognitionOptions.TRANSLATE_WHOLE)
+            }
+            setRadioBtnTextColor(btn as RadioButton)
+        }
+        when(sharedPref.lastSelectedRadioButton) {
+            RecognitionOptions.TRANSLATE_BLOCKS.name -> { binding!!.radioBtnOcrBlock.isChecked = true }
+            RecognitionOptions.TRANSLATE_LINES.name -> { binding!!.radioBtnOcrLine.isChecked = true }
+            RecognitionOptions.TRANSLATE_WHOLE.name -> { binding!!.radioBtnOcrWhole.isChecked = true }
+        }
+    }
+
+    private fun setLastRadioButton(text: Text, option: RecognitionOptions) {
+        sharedPref.lastSelectedRadioButton = option.name
+        getTextFromImage(text, option)
+    }
+
+    private fun setRadioBtnTextColor(btn: RadioButton) {
+        if (btn.isChecked) {
+            btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
+        } else {
+            btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_color))
+        }
+    }
+
+    private fun getTextFromImage(text: Text, option: RecognitionOptions) {
+        if (imageUri == null) {
+            return
+        }
+        UIState.isLoadingState.value = true
+        val bitmap = getBitmapFromUri(imageUri!!, requireContext().contentResolver)
+        if (imageUri != null) {
+            ocr.translateText(bitmap, text, option, object: OCRResultListener<Bitmap>{
+                override fun onSuccess(result: Bitmap?) {
+                    UIState.isLoadingState.value = false
+                    if (result == null) {
+                        binding?.imgOcrPicture?.setImageURI(imageUri)
+                    } else {
+                        binding?.imgOcrPicture?.setImageBitmap(result)
+                    }
+                }
+
+                override fun onFailure(message: String) {
+                    UIState.isLoadingState.value = false
+                    Timber.e("OCR failed: $message")
+                    binding?.imgOcrPicture?.setImageURI(imageUri)
+                }
+            })
         }
     }
 
@@ -68,60 +150,6 @@ class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
             sharedPref = SharedPref(requireContext())
             langFrom = Languages.getLanguageFromShortName(sharedPref.langFrom)
             langTo = Languages.getLanguageFromShortName(sharedPref.langTo)
-        }
-    }
-
-    private fun getTextFromImage(option: RecognitionOptions) {
-        if (imageUri != null) {
-            UIState.isLoadingState.value = true
-            MLTranslator(langFrom, langTo) {
-                val ocr = MLKitOCRHandler(requireContext(), it)
-                ocr.runTextRecognition(imageUri!!, option, object: OCRResultListener {
-                    override fun onSuccess(bitmap: Bitmap?) {
-                        UIState.isLoadingState.value = false
-                        if (bitmap == null) {
-                            binding?.imgOcrPicture?.setImageURI(imageUri)
-                        } else {
-                            binding?.imgOcrPicture?.setImageBitmap(bitmap)
-                        }
-                    }
-
-                    override fun onFailure(message: String) {
-                        UIState.isLoadingState.value = false
-                        Timber.e("OCR failed: $message")
-                        binding?.imgOcrPicture?.setImageURI(imageUri)
-                    }
-                })
-            }
-
-        }
-    }
-
-    private fun handleRadioButtons() {
-        val lastOption = sharedPref.lastSelectedRadioButton
-        binding!!.radioBtnOcrBlock.setOnCheckedChangeListener { btn, _ ->
-            setRadioBtnTextColor(btn as RadioButton, RecognitionOptions.TRANSLATE_BLOCKS)
-        }
-        binding!!.radioBtnOcrLine.setOnCheckedChangeListener { btn, _ ->
-            setRadioBtnTextColor(btn as RadioButton, RecognitionOptions.TRANSLATE_LINES)
-        }
-        binding!!.radioBtnOcrWhole.setOnCheckedChangeListener { btn, _ ->
-            setRadioBtnTextColor(btn as RadioButton, RecognitionOptions.TRANSLATE_WHOLE)
-        }
-        when(lastOption) {
-            RecognitionOptions.TRANSLATE_BLOCKS.name -> { binding!!.radioBtnOcrBlock.isChecked = true }
-            RecognitionOptions.TRANSLATE_LINES.name -> { binding!!.radioBtnOcrLine.isChecked = true }
-            RecognitionOptions.TRANSLATE_WHOLE.name -> { binding!!.radioBtnOcrWhole.isChecked = true }
-        }
-    }
-
-    private fun setRadioBtnTextColor(btn: RadioButton, option: RecognitionOptions) {
-        if (btn.isChecked) {
-            sharedPref.lastSelectedRadioButton = option.name
-            btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.white))
-            getTextFromImage(option)
-        } else {
-            btn.setTextColor(ContextCompat.getColor(requireContext(), R.color.primary_color))
         }
     }
 
@@ -140,6 +168,7 @@ class OcrFragment : Fragment(), TextToSpeech.OnInitListener {
 
     override fun onDestroy() {
         UIState.isLoadingState.value = false
+        ocr.closeTranslator()
         tts.shutdown()
         binding = null
         super.onDestroy()
