@@ -277,6 +277,16 @@ class HomeFragment : Fragment() {
         }
     }
 
+    override fun onPause() {
+        super.onPause()
+        binding!!.camera.close()
+    }
+
+    override fun onResume() {
+        super.onResume()
+        binding!!.camera.open()
+    }
+
     override fun onDestroyView() {
         super.onDestroyView()
         binding = null
