@@ -5,6 +5,7 @@
     <string name="title_places">Places</string>
     <string name="title_profile">Profile</string>
     <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
 
     <!--Home -->
     <string name="home_no_internet">No internet connection found!</string>
@@ -21,7 +22,7 @@
     <string name="ocr_options_block">Block</string>
     <string name="ocr_options_line">Line</string>
     <string name="ocr_options_whole">Whole</string>
-    <!-- TODO: Remove or change this placeholder text -->
-    <string name="hello_blank_fragment">Hello blank fragment</string>
 
+    <string name="save_ocr">Give a name to this photo</string>
+    <string name="ocr_image_saved">Photo saved successfully!</string>
 </resources>

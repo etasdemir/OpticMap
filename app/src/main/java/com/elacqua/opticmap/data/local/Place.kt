@@ -16,8 +16,7 @@ data class Place(
     val latitude: Double = 0.0,
     val longitude: Double = 0.0,
     val date: String = "",
-    @ColumnInfo(typeAffinity = ColumnInfo.BLOB)
-    val image: ByteArray? = null,
+    val imageDir: String = "",
 ): Parcelable {
     @Ignore
     var address: Address = Address()
@@ -35,7 +34,7 @@ data class Place(
         result = (31 * result + latitude).toInt()
         result = (31 * result + longitude).toInt()
         result = 31 * result + date.hashCode()
-        result = 31 * result + image.contentHashCode()
+        result = 31 * result + imageDir.hashCode()
         return result
     }
 }

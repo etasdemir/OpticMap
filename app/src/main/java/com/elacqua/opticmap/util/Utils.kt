@@ -1,6 +1,5 @@
 package com.elacqua.opticmap.util
 
-import android.R
 import android.content.ContentResolver
 import android.graphics.Bitmap
 import android.graphics.BitmapFactory
@@ -28,6 +27,7 @@ object Constant {
 
     const val IMAGE_PICK_INTENT_CODE = 10
     const val CAMERA_REQUEST_CODE = 11
+    const val LOCATION_PERM_CODE = 13
 
     val DEFAULT_LANGUAGE = Languages.English
 }

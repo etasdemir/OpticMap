@@ -1,6 +1,7 @@
 package com.elacqua.opticmap.ui.fragments
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.os.Bundle
 import android.view.LayoutInflater
 import android.view.View
@@ -10,6 +11,7 @@ import com.elacqua.opticmap.data.local.Place
 import com.elacqua.opticmap.databinding.FragmentPlaceBinding
 import com.elacqua.opticmap.util.Constant
 import com.elacqua.opticmap.util.byteArrayToBitmap
+import com.elacqua.opticmap.util.getBitmapFromUri
 import com.elacqua.opticmap.util.getDateFromEpoch
 
 class PlaceFragment : Fragment() {
@@ -37,8 +39,8 @@ class PlaceFragment : Fragment() {
             "${place!!.address.address} ${place!!.address.city} / ${place!!.address.country}"
         val date = getDateFromEpoch(place!!.date)
         binding!!.txtPlaceFragmentDate.text = date
-        if (place!!.image != null) {
-            val bitmap = byteArrayToBitmap(place!!.image!!)
+        if (place!!.imageDir.isNotEmpty()) {
+            val bitmap = getBitmapFromUri(Uri.parse(place!!.imageDir), requireContext().contentResolver)
             binding!!.imgPlaceFragment.setImageBitmap(bitmap)
         }
     }

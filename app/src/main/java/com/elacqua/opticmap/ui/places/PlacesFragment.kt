@@ -8,6 +8,7 @@ import androidx.core.os.bundleOf
 import androidx.fragment.app.Fragment
 import androidx.lifecycle.ViewModelProvider
 import androidx.navigation.fragment.findNavController
+import androidx.recyclerview.widget.GridLayoutManager
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -56,11 +57,9 @@ class PlacesFragment : Fragment() {
         })
         binding!!.rvPlaces.run {
             adapter = placeRecyclerView
-            layoutManager = LinearLayoutManager(
-                requireContext(),
-                LinearLayoutManager.VERTICAL, false
-            )
+            layoutManager = GridLayoutManager(requireContext(), 2)
             setHasFixedSize(true)
+            addItemDecoration(GridSpacingItemDecoration(2, 50, true))
         }
 
         val swipe = object :

@@ -1,6 +1,7 @@
 package com.elacqua.opticmap.ui.places
 
 import android.annotation.SuppressLint
+import android.net.Uri
 import android.view.LayoutInflater
 import android.view.View
 import android.view.ViewGroup
@@ -10,6 +11,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.elacqua.opticmap.R
 import com.elacqua.opticmap.data.local.Place
 import com.elacqua.opticmap.util.byteArrayToBitmap
+import com.elacqua.opticmap.util.getBitmapFromUri
 import com.elacqua.opticmap.util.getDateFromEpoch
 import java.text.SimpleDateFormat
 import java.util.*
@@ -27,7 +29,7 @@ class PlaceRecyclerView(private val placeClickListener: PlaceClickListener) :
     }
 
     fun removePlace(position: Int) {
-        val removedPlace = places.removeAt(position)
+        places.removeAt(position)
         notifyItemRemoved(position)
     }
 
@@ -59,8 +61,10 @@ class PlaceRecyclerView(private val placeClickListener: PlaceClickListener) :
             txtPlaceLocation.text =
                 "${places[position].address.city} / ${places[position].address.country}"
             txtPlaceDate.text = getDateFromEpoch(places[position].date)
-            if (places[position].image != null) {
-                imgPlaceOcr.setImageBitmap(byteArrayToBitmap(places[position].image!!))
+            if (places[position].imageDir.isNotEmpty()) {
+                val bitmap = getBitmapFromUri(Uri.parse(places[position].imageDir),
+                    view.context.contentResolver)
+                imgPlaceOcr.setImageBitmap(bitmap)
             }
         }
 

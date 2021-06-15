@@ -26,11 +26,6 @@
     </fragment>
 
     <fragment
-        android:id="@+id/navigation_profile"
-        android:name="com.elacqua.opticmap.ui.profile.ProfileFragment"
-        android:label="@string/title_profile"
-        tools:layout="@layout/fragment_profile" />
-    <fragment
         android:id="@+id/ocrFragment"
         android:name="com.elacqua.opticmap.ui.fragments.OcrFragment"
         android:label="fragment_ocr"
