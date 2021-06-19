@@ -24,7 +24,8 @@ OpticMap is a on-device optical character recognition Android application. Inter
 * ViewModel
 * SharedPreference
 
-Screenshots:
+### Screenshots:
+
 <p align="center">
   <img src="https://github.com/etasdemir/OpticMap/blob/master/screens/Screenshot_20210619-123903_OpticMap.jpg?raw=true" width="200">
   <img src="https://github.com/etasdemir/OpticMap/blob/master/screens/Screenshot_20210619-123939_OpticMap.jpg?raw=true" width="200">
