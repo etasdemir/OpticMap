@@ -3,6 +3,7 @@
 OpticMap is a on-device optical character recognition Android application. Internet connection only needed for downloading models when a language selected first time. It can can recognize text in any Latin-based character set and can translate recognized texts. It supports Catalan, Danish, Dutch, English, Finnish, French, German, Hungarian, Italian, Norwegian, Polish, Portugese, Romanian, Spanish, Swedish, Tagalog, Turkish;
 
   - Recognize text on images and translate recognized texts.
+  - Text to speech
   - Images can be coming from gallery or camera
   - Save image with recognized text on it
   - Saved images carries additional informations such as location, name of the place, address, date
@@ -14,6 +15,7 @@ OpticMap is a on-device optical character recognition Android application. Inter
 * MVVM architecture
 * Single activity multiple fragments
 * MlKit Translate for translation
+* TextToSpeech
 * MlKit Text Recognition for OCR
 * Coroutine for async tasks
 * LiveData
@@ -30,6 +32,7 @@ OpticMap is a on-device optical character recognition Android application. Inter
   <img src="https://github.com/etasdemir/OpticMap/blob/master/screens/Screenshot_20210619-123903_OpticMap.jpg?raw=true" width="200">
   <img src="https://github.com/etasdemir/OpticMap/blob/master/screens/Screenshot_20210619-123939_OpticMap.jpg?raw=true" width="200">
   <img src="https://raw.githubusercontent.com/etasdemir/OpticMap/master/screens/Screenshot_20210619-124004_OpticMap.jpg?raw=true" width="200">
+  <img src="https://github.com/etasdemir/OpticMap/blob/master/screens/Screenshot_20210619-133450_OpticMap.jpg?raw=true" width="200">
 </p>
 <br>
 <p align="center">
